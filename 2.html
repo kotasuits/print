@@ -239,7 +239,43 @@
       });
     }
 
+    function validateAddresses() {
+      const boxes = document.querySelectorAll('.editable');
+      let isValid = true;
+      let errorMessages = [];
+
+      boxes.forEach((box, index) => {
+        const text = box.innerText.trim();
+        if (text) {
+          // Check for pincode: 6 digits
+          const hasPincode = /\\b\\d{6}\\b/.test(text);
+          // Check for phone number: 10 digits
+          const hasPhone = /\\b\\d{10}\\b/.test(text);
+
+          let missing = [];
+          if (!hasPincode) missing.push("Pincode (6 digits)");
+          if (!hasPhone) missing.push("Phone Number (10 digits)");
+
+          if (missing.length > 0) {
+            isValid = false;
+            errorMessages.push(\`Box \${index + 1} is missing: \${missing.join(" and ")}\`);
+            box.parentElement.style.border = "2px solid red";
+          } else {
+            box.parentElement.style.border = "none";
+          }
+        }
+      });
+
+      if (!isValid) {
+        alert("Validation Error! Please fix the following:\\n\\n" + errorMessages.join("\\n"));
+      }
+
+      return isValid;
+    }
+
     async function generatePDF() {
+      if (!validateAddresses()) return;
+
       const { jsPDF } = window.jspdf;
       const pageSize = document.getElementById('pageSize').value.toLowerCase();
       const doc = new jsPDF({ format: pageSize });
@@ -277,24 +313,25 @@
 
 
     function printAddresses() {
+      if (!validateAddresses()) return;
 
       const boxes = document.querySelectorAll('.textarea-box');
       const fontFamily = document.getElementById('fontFamily').value;
       const pageSize = document.getElementById('pageSize').value;
 
       const win = window.open('', '', 'width=800,height=900');
-      win.document.write(`
+      win.document.write(\`
       <html>
       <head>
-        <title>Print ${pageSize}</title>
+        <title>Print \${pageSize}</title>
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
         <style>
           @page {
-            size: ${pageSize} portrait;
+            size: \${pageSize} portrait;
             margin: 10mm;
           }
           body {
-            font-family: ${fontFamily};
+            font-family: \${fontFamily};
             margin: 0;
             padding: 0;
           }
@@ -334,7 +371,7 @@
         </style>
       </head>
       <body>
-    `);
+    \`);
 
       boxes.forEach((box) => {
         const editable = box.querySelector('.editable');
@@ -346,17 +383,17 @@
         const align = window.getComputedStyle(editable).textAlign;
 
         if (content) {
-          win.document.write(`
+          win.document.write(\`
             <div class="page">
-              <div class="label">${label}</div>
-              <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
+              <div class="label">\${label}</div>
+              <div class="content" style="font-size:\${size}; text-align:\${align}">\${content}</div>
               <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
             </div>
-          `);
+          \`);
         }
       });
 
-      win.document.write(`</body></html>`);
+      win.document.write(\`</body></html>\`);
       win.document.close();
       win.print();
     }
