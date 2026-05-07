@@ -259,9 +259,9 @@
           if (missing.length > 0) {
             isValid = false;
             errorMessages.push(\`Box \${index + 1} is missing: \${missing.join(" and ")}\`);
-            box.parentElement.style.border = "2px solid red";
+            box.style.border = "2px solid red";
           } else {
-            box.parentElement.style.border = "none";
+            box.style.border = "none";
           }
         }
       });
