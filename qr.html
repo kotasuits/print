@@ -278,7 +278,7 @@
                     const pincodeMatch = text.match(/\\b\\d{6}\\b/);
                     const linesText = text.split('\\n').filter(l => l.trim() !== '');
                     const name = linesText.length > 0 ? linesText[0] : '';
-                    
+
                     const qrData = {
                         name: name,
                         phone: phoneMatch ? phoneMatch[0] : '',
@@ -292,12 +292,12 @@
                         text: JSON.stringify(qrData),
                         width: 512,
                         height: 512,
-                        correctLevel : QRCode.CorrectLevel.L
+                        correctLevel: QRCode.CorrectLevel.L
                     });
-                    
+
                     // Wait slightly for QR code canvas to be rendered
                     await new Promise(r => setTimeout(r, 50));
-                    
+
                     let canvas = qrDiv.querySelector('canvas');
                     let qrDataUrl = canvas ? canvas.toDataURL('image/png') : null;
 
@@ -314,7 +314,7 @@
                     if (qrDataUrl) {
                         doc.addImage(qrDataUrl, 'PNG', qrX, y, qrSize, qrSize);
                     }
-                    
+
                     y += blockHeight;
                 }
             }
@@ -399,7 +399,7 @@
                     const pincodeMatch = plainText.match(/\\b\\d{6}\\b/);
                     const linesText = plainText.split('\\n').filter(l => l.trim() !== '');
                     const name = linesText.length > 0 ? linesText[0] : '';
-                    
+
                     const qrData = {
                         name: name,
                         phone: phoneMatch ? phoneMatch[0] : '',
