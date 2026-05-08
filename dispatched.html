@@ -345,13 +345,32 @@
                         // Skip deleted rows
                         if (deletedOrders.includes(row.timestamp)) return;
 
+                        let dispAddress = row.address || row.Address || '';
+                        let dispName = row.name || row.Name || '';
+                        
+                        // If address is missing, use name (old QR codes put full address in name)
+                        if (!dispAddress || dispAddress.trim() === '') {
+                            dispAddress = dispName;
+                        }
+                        
+                        // If still empty due to missing headers in Google Sheet, use positional values
+                        if (!dispAddress || dispAddress.trim() === '') {
+                             const vals = Object.values(row);
+                             // vals[1] usually corresponds to column B (Name/Address)
+                             if (vals.length >= 4 && vals[3] && typeof vals[3] === 'string' && vals[3].trim() !== '') {
+                                 dispAddress = vals[3];
+                             } else if (vals.length >= 2 && vals[1] && typeof vals[1] === 'string' && vals[1].trim() !== '') {
+                                 dispAddress = vals[1];
+                             }
+                        }
+
                         const tr = document.createElement('tr');
-                        tr.setAttribute('data-name', (row.name || '').toLowerCase());
+                        tr.setAttribute('data-name', dispName.toLowerCase());
                         tr.setAttribute('data-phone', (row.phone || '').toLowerCase());
                         tr.innerHTML = `
                             <td class="td-time">${row.timestamp || 'N/A'}</td>
                             <td><span class="td-status">Dispatched</span></td>
-                            <td>${row.address || 'N/A'}</td>
+                            <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
                             <td><button class="delete-btn" onclick="deleteOrder('${row.timestamp}')">Delete</button></td>
                         `;
                         tbody.appendChild(tr);
@@ -391,6 +410,28 @@
 
         function deleteOrder(timestamp) {
             if (confirm("Are you sure you want to delete this order?")) {
+                // Send delete request to Google Sheets
+                const formData = new URLSearchParams();
+                formData.append("action", "delete");
+                formData.append("timestamp", timestamp);
+
+                fetch(GOOGLE_WEB_APP_URL, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        console.log("Successfully deleted from sheet.");
+                    } else {
+                        console.error("Failed to delete from sheet: " + (data.message || "Unknown error"));
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting from sheet:", error);
+                });
+
+                // Immediately hide on frontend for smooth UI experience
                 let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
                 if (!deletedOrders.includes(timestamp)) {
                     deletedOrders.push(timestamp);
