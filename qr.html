@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Custom PDF Maker</title>
+    <title>Made By Arshad Kota</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link
@@ -182,15 +182,6 @@
             color: white;
             border-color: #3b82f6;
         }
-
-        /* Print: hide everything except the label pages */
-        @media print {
-            body > *:not(#print-area) { display: none !important; }
-            #print-area { display: block !important; }
-            @page { margin: 10mm; }
-        }
-
-        #print-area { display: none; }
     </style>
 </head>
 
@@ -202,9 +193,6 @@
         <a href="scanner.html">🔍 Open QR Scanner</a>
         <a href="dispatched.html">📦 View Dispatched Orders</a>
     </div>
-
-    <!-- Hidden print area -->
-    <div id="print-area"></div>
 
     <div class="controls">
         <button onclick="addAddressBox()">Add Box</button>
@@ -469,21 +457,18 @@
                 </div>`;
             });
 
-            // Inject into hidden print area and call window.print() — no popup, works on all devices
-            const printArea = document.getElementById('print-area');
-
-            // Set page size via style
-            let psStyle = document.getElementById('page-size-style');
-            if (!psStyle) {
-                psStyle = document.createElement('style');
-                psStyle.id = 'page-size-style';
-                document.head.appendChild(psStyle);
-            }
-            psStyle.textContent = `@page{size:${pageSize} portrait;margin:10mm;} #print-area{font-family:${fontFamily};}`;
-
-            printArea.innerHTML = pagesHtml;
-            window.print();
-            printArea.innerHTML = '';
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html><html><head>
+              <title>Print ${pageSize}</title>
+              <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+              <style>
+                @page { size: ${pageSize} portrait; margin: 10mm; }
+                body { font-family: ${fontFamily}; margin: 0; padding: 0; }
+              </style>
+            </head><body>${pagesHtml}</body></html>`);
+            win.document.close();
+            win.focus();
+            win.print();
         }
 
         // Start with one box
