@@ -1,371 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Custom PDF Maker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Outfit:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&display=swap"
-        rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatched Log</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            padding: 30px;
-            background: #f5f5f5;
-            color: #333;
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
         }
 
-        h1 {
-            text-align: center;
-            color: #444;
-        }
-
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        button,
-        select {
-            padding: 10px 16px;
-            font-size: 15px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .textarea-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .textarea-box {
-            width: 30%;
-            background: transparent;
-            border-radius: 10px;
-            padding: 10px;
-            position: relative;
-        }
-
-        .editable {
-            width: 100%;
-            min-height: 100px;
-            max-height: 300px;
-            overflow-y: auto;
-            word-wrap: break-word;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: inherit;
+        * {
             box-sizing: border-box;
-            resize: vertical;
-            outline: none;
-            background: white;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media(max-width: 600px) {
+            .header { flex-direction: column; gap: 15px; }
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+        }
+
+        button.refresh-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.refresh-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 1000px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 16px;
             text-align: left;
+            border-bottom: 1px solid var(--border);
         }
 
-        .lock-btn {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
 
-
-
-        .kdo-label {
-            position: absolute;
-            top: 8px;
-            left: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-            background: transparent;
-            color: #333;
-            border: none;
-            cursor: pointer;
+        tbody tr {
+            transition: background 0.2s;
         }
 
-        .locked .editable {
-            background: #eee;
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        .td-name { font-weight: 600; color: #f8fafc; }
+        .td-time { color: #94a3b8; font-size: 0.85rem; }
+        .td-status {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .loading-state, .error-state, .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .nav-links {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+        }
+
+        .nav-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #3b82f6;
+        }
+
+        /* Setup warning */
+        .setup-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: center;
         }
     </style>
 </head>
-
 <body>
 
-    <h1>Custom PDF & Print Maker</h1>
-
-    <div class="controls">
-        <button onclick="addAddressBox()">Add Box</button>
-
-        <select id="fontFamily" onchange="adjustFontFamily()">
-            <!-- Default -->
-            <option value="Poppins" selected>Poppins ⭐</option>
-            <!-- Sans-serif -->
-            <option value="Roboto">Roboto</option>
-            <option value="Open Sans">Open Sans</option>
-            <option value="Lato">Lato</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Raleway">Raleway</option>
-            <option value="Nunito">Nunito</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Inter">Inter</option>
-            <option value="DM Sans">DM Sans</option>
-            <option value="Work Sans">Work Sans</option>
-            <option value="Barlow">Barlow</option>
-            <option value="Fira Sans">Fira Sans</option>
-            <option value="Exo 2">Exo 2</option>
-            <option value="Cabin">Cabin</option>
-            <option value="Karla">Karla</option>
-            <option value="Rubik">Rubik</option>
-            <option value="Jost">Jost</option>
-            <option value="Outfit">Outfit</option>
-            <option value="Manrope">Manrope</option>
-            <option value="Mulish">Mulish</option>
-            <option value="Quicksand">Quicksand</option>
-            <option value="Josefin Sans">Josefin Sans</option>
-            <option value="Ubuntu">Ubuntu</option>
-            <option value="PT Sans">PT Sans</option>
-            <option value="Source Sans 3">Source Sans 3</option>
-            <option value="Noto Sans">Noto Sans</option>
-            <!-- Serif -->
-            <option value="Merriweather">Merriweather</option>
-            <option value="Playfair Display">Playfair Display</option>
-            <!-- Display / Decorative -->
-            <option value="Pacifico">Pacifico</option>
-            <option value="Lobster">Lobster</option>
-            <option value="Comfortaa">Comfortaa</option>
-            <option value="Righteous">Righteous</option>
-            <option value="Caveat">Caveat</option>
-            <option value="Dancing Script">Dancing Script</option>
-            <!-- System -->
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Segoe UI">Segoe UI</option>
-        </select>
-
-        <select id="pageSize">
-            <option value="A4">A4</option>
-            <option value="A5">A5</option>
-            <option value="A6" selected>A6</option>
-        </select>
-
-        <button onclick="alignText('left')">Align Left</button>
-        <button onclick="alignText('right')">Align Right</button>
-
-        <button onclick="adjustFontSize(1)">A+</button>
-        <button onclick="adjustFontSize(-1)">A–</button>
-
-        <button onclick="applyBold()">Bold</button>
-        <button onclick="generatePDF()">Download PDF</button>
-        <button onclick="printAddresses()">Print</button>
+    <div class="header">
+        <div class="header-title">
+            <h1>Dispatched Items</h1>
+            <p>Live data synced directly from Google Sheets.</p>
+        </div>
+        <button class="refresh-btn" onclick="fetchData()">
+            <span>↻</span> Refresh Log
+        </button>
     </div>
 
-    <div id="addressContainer" class="textarea-container"></div>
+    <div class="glass-card">
+        <div id="setup-warning" class="setup-warning" style="display: none;">
+            <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to fetch data.
+        </div>
+
+        <div id="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Fetching data from Google Sheets...</p>
+        </div>
+
+        <div id="error" class="error-state" style="display: none;">
+            <p id="error-msg">Failed to load data. Please check your URL and try again.</p>
+        </div>
+
+        <div id="empty" class="empty-state" style="display: none;">
+            <p>No dispatched items found. Try scanning a QR code first!</p>
+        </div>
+
+        <table id="data-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Pincode</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Rows will be injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="nav-links">
+        <a href="qr.html">← Generate Labels</a>
+        <a href="scanner.html">← QR Scanner</a>
+    </div>
 
     <script>
-        function addAddressBox() {
-            const container = document.getElementById('addressContainer');
-            const box = document.createElement('div');
-            box.className = 'textarea-box';
-            box.innerHTML = `
-      <button class="kdo-label" onclick="toggleKdo(this)">KDO</button>
-      <button class="lock-btn" onclick="toggleLock(this)">Lock</button>
-      <div class="editable" contenteditable="true" style="font-size:16px;"></div>
-    `;
-            container.appendChild(box);
-        }
+        // ========================================================================
+        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
+        // ========================================================================
+        const GOOGLE_WEB_APP_URL = ""; 
+        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
 
-        function toggleLock(btn) {
-            const box = btn.parentElement;
-            const editable = box.querySelector('.editable');
-            if (editable.contentEditable === "false") {
-                editable.contentEditable = "true";
-                box.classList.remove('locked');
-                btn.textContent = "Lock";
-            } else {
-                editable.contentEditable = "false";
-                box.classList.add('locked');
-                btn.textContent = "Unlock";
+        window.onload = function() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
+                document.getElementById('setup-warning').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                return;
             }
+            fetchData();
         }
 
-        function toggleKdo(labelBtn) {
-            labelBtn.textContent = labelBtn.textContent === 'KDO' ? 'KZO' : 'KDO';
-        }
+        function fetchData() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
 
-        function adjustFontFamily() {
-            const font = document.getElementById('fontFamily').value;
-            document.querySelectorAll('.editable').forEach(div => {
-                div.style.fontFamily = font;
-            });
-        }
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('empty').style.display = 'none';
+            document.getElementById('data-table').style.display = 'none';
+            document.getElementById('table-body').innerHTML = '';
 
-        function alignText(direction) {
-            document.querySelectorAll('.editable').forEach(div => {
-                div.style.textAlign = direction;
-            });
-        }
-
-        function applyBold() {
-            document.execCommand('bold');
-        }
-
-        function adjustFontSize(change) {
-            document.querySelectorAll('.editable').forEach(div => {
-                const currentSize = parseInt(window.getComputedStyle(div).fontSize);
-                let newSize = currentSize + change;
-                if (newSize >= 16 && newSize <= 116) {
-                    div.style.fontSize = newSize + 'px';
-                }
-            });
-        }
-
-        async function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const pageSize = document.getElementById('pageSize').value.toLowerCase();
-            const doc = new jsPDF({ format: pageSize });
-            const boxes = document.querySelectorAll('.editable');
-
-            let colWidth = 180;
-            let maxHeight = 270;
-            if (pageSize === 'a5') {
-                colWidth = 130;
-                maxHeight = 190;
-            } else if (pageSize === 'a6') {
-                colWidth = 90;
-                maxHeight = 130;
-            }
-
-            const x = 10;
-            let y = 10;
-
-            boxes.forEach((box) => {
-                const text = box.innerText.trim();
-
-                if (text) {
-                    const lines = doc.splitTextToSize(text, colWidth);
-                    doc.text(lines, x, y);
-                    y += lines.length * 10 + 10;
-                    if (y > maxHeight) {
-                        doc.addPage();
-                        y = 10;
+            fetch(GOOGLE_WEB_APP_URL)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (!data || data.length === 0) {
+                        document.getElementById('empty').style.display = 'block';
+                        return;
                     }
-                }
-            });
 
-            doc.save('custom.pdf');
+                    // Sort data so newest is first (assuming timestamp can be parsed)
+                    // If rows are appended to sheet, latest are at the end, so reverse it
+                    data.reverse();
+
+                    const tbody = document.getElementById('table-body');
+                    
+                    data.forEach(row => {
+                        // Skip empty rows
+                        if (!row.timestamp && !row.name && !row.phone) return;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="td-time">${row.timestamp || 'N/A'}</td>
+                            <td><span class="td-status">Dispatched</span></td>
+                            <td class="td-name">${row.name || 'N/A'}</td>
+                            <td>${row.phone || 'N/A'}</td>
+                            <td>${row.address || 'N/A'}</td>
+                            <td>${row.pincode || 'N/A'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('data-table').style.display = 'table';
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                });
         }
-
-
-        function printAddresses() {
-
-            const boxes = document.querySelectorAll('.textarea-box');
-            const fontFamily = document.getElementById('fontFamily').value;
-            const pageSize = document.getElementById('pageSize').value;
-
-            const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`
-      <html>
-      <head>
-        <title>Print ${pageSize}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: ${pageSize} portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: ${fontFamily};
-            margin: 0;
-            padding: 0;
-          }
-          .page {
-            width: 100%;
-            height: 100%;
-            page-break-after: always;
-            box-sizing: border-box;
-            padding: 20px;
-            position: relative;
-          }
-          .label {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-          }
-          .content {
-            width: 100%;
-            font-size: 16px;
-            word-wrap: break-word;
-            padding: 10px;
-            border-radius: 0;
-            background: transparent;
-          }
-          .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-          }
-
-        </style>
-      </head>
-      <body>
-    `);
-
-            boxes.forEach((box) => {
-                const editable = box.querySelector('.editable');
-                const labelBtn = box.querySelector('.kdo-label');
-
-                const label = labelBtn ? labelBtn.textContent : '';
-                const content = editable.innerHTML.trim();
-                const size = window.getComputedStyle(editable).fontSize;
-                const align = window.getComputedStyle(editable).textAlign;
-
-                if (content) {
-                    win.document.write(`
-            <div class="page">
-              <div class="label">${label}</div>
-              <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
-              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-            </div>
-          `);
-                }
-            });
-
-            win.document.write(`</body></html>`);
-            win.document.close();
-            win.print();
-        }
-
-        // Start with one box
-        addAddressBox();
     </script>
 </body>
-
 </html>
