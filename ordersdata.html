@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatched Log</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media(max-width: 600px) {
+            .header { flex-direction: column; gap: 15px; }
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+        }
+
+        button.refresh-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.refresh-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 1000px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        .td-name { font-weight: 600; color: #f8fafc; }
+        .td-time { color: #94a3b8; font-size: 0.85rem; }
+        .td-status {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .loading-state, .error-state, .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .nav-links {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+        }
+
+        .nav-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #3b82f6;
+        }
+
+        /* Setup warning */
+        .setup-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-title">
+            <h1>Dispatched Items</h1>
+            <p>Live data synced directly from Google Sheets.</p>
+        </div>
+        <button class="refresh-btn" onclick="fetchData()">
+            <span>↻</span> Refresh Log
+        </button>
+    </div>
+
+    <div class="glass-card">
+        <div id="setup-warning" class="setup-warning" style="display: none;">
+            <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to fetch data.
+        </div>
+
+        <div id="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Fetching data from Google Sheets...</p>
+        </div>
+
+        <div id="error" class="error-state" style="display: none;">
+            <p id="error-msg">Failed to load data. Please check your URL and try again.</p>
+        </div>
+
+        <div id="empty" class="empty-state" style="display: none;">
+            <p>No dispatched items found. Try scanning a QR code first!</p>
+        </div>
+
+        <table id="data-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Pincode</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Rows will be injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="nav-links">
+        <a href="qr.html">← Generate Labels</a>
+        <a href="scanner.html">← QR Scanner</a>
+    </div>
+
+    <script>
+        // ========================================================================
+        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
+        // ========================================================================
+        const GOOGLE_WEB_APP_URL = ""; 
+        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
+
+        window.onload = function() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
+                document.getElementById('setup-warning').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            fetchData();
+        }
+
+        function fetchData() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('empty').style.display = 'none';
+            document.getElementById('data-table').style.display = 'none';
+            document.getElementById('table-body').innerHTML = '';
+
+            fetch(GOOGLE_WEB_APP_URL)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (!data || data.length === 0) {
+                        document.getElementById('empty').style.display = 'block';
+                        return;
+                    }
+
+                    // Sort data so newest is first (assuming timestamp can be parsed)
+                    // If rows are appended to sheet, latest are at the end, so reverse it
+                    data.reverse();
+
+                    const tbody = document.getElementById('table-body');
+                    
+                    data.forEach(row => {
+                        // Skip empty rows
+                        if (!row.timestamp && !row.name && !row.phone) return;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="td-time">${row.timestamp || 'N/A'}</td>
+                            <td><span class="td-status">Dispatched</span></td>
+                            <td class="td-name">${row.name || 'N/A'}</td>
+                            <td>${row.phone || 'N/A'}</td>
+                            <td>${row.address || 'N/A'}</td>
+                            <td>${row.pincode || 'N/A'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('data-table').style.display = 'table';
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                });
+        }
+    </script>
+</body>
+</html>
