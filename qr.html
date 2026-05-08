@@ -403,88 +403,34 @@
 
 
         function printAddresses() {
-
             const boxes = document.querySelectorAll('.textarea-box');
             const fontFamily = document.getElementById('fontFamily').value;
             const pageSize = document.getElementById('pageSize').value;
-
-            const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`
-      <html>
-      <head>
-        <title>Print ${pageSize}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: ${pageSize} portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: ${fontFamily};
-            margin: 0;
-            padding: 0;
-          }
-          .page {
-            width: 100%;
-            height: 98vh;
-            page-break-after: always;
-            box-sizing: border-box;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-          }
-          .page:last-of-type {
-            page-break-after: auto !important;
-          }
-          .label {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-          }
-          .content {
-            width: 100%;
-            font-size: 16px;
-            word-wrap: break-word;
-            padding: 10px;
-            border-radius: 0;
-            background: transparent;
-          }
-          .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-          }
-
-        </style>
-      </head>
-      <body>
-    `);
 
             const validBoxes = Array.from(boxes).filter(box => {
                 const text = box.querySelector('.editable').innerText.trim();
                 return text !== '';
             });
 
+            if (validBoxes.length === 0) {
+                alert('Please add at least one address before printing.');
+                return;
+            }
+
+            // Build all page HTML as a string
+            let pagesHtml = '';
             validBoxes.forEach((box, index) => {
                 const editable = box.querySelector('.editable');
                 const labelBtn = box.querySelector('.kdo-label');
-
                 const label = labelBtn ? labelBtn.textContent : '';
                 const plainText = editable.innerText.trim();
                 const htmlContent = editable.innerHTML.trim();
                 const size = window.getComputedStyle(editable).fontSize;
                 const align = window.getComputedStyle(editable).textAlign;
 
-                // Extract structured data for QR
-                const phoneMatch = plainText.match(/\\b\\d{10}\\b/);
-                const pincodeMatch = plainText.match(/\\b\\d{6}\\b/);
-                const linesText = plainText.split('\\n').filter(l => l.trim() !== '');
+                const phoneMatch = plainText.match(/\b\d{10}\b/);
+                const pincodeMatch = plainText.match(/\b\d{6}\b/);
+                const linesText = plainText.split('\n').filter(l => l.trim() !== '');
                 const name = linesText.length > 0 ? linesText[0] : '';
 
                 const qrData = {
@@ -494,34 +440,42 @@
                     address: plainText
                 };
 
-                // Generate QR
                 let qrDiv = document.createElement('div');
-                new QRCode(qrDiv, {
-                    text: JSON.stringify(qrData),
-                    width: 512,
-                    height: 512,
-                    correctLevel: QRCode.CorrectLevel.L
-                });
+                new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 512, height: 512, correctLevel: QRCode.CorrectLevel.L });
                 let canvas = qrDiv.querySelector('canvas');
                 let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
 
                 const isLast = (index === validBoxes.length - 1);
-                
-                win.document.write(`
-            <div class="page" ${isLast ? 'style="page-break-after: auto !important;"' : ''}>
-              <div class="label">${label}</div>
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; height: 100%; padding-top: 30px;">
-                  <div class="content" style="flex: 1; font-size:${size}; text-align:${align}">${htmlContent}</div>
-                  ${qrDataUrl ? `<div style="margin-left: 15px;"><img src="${qrDataUrl}" width="100" height="100" /></div>` : ''}
-              </div>
-              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-            </div>
-          `);
+                pagesHtml += `
+                <div style="width:100%;min-height:96vh;box-sizing:border-box;padding:20px;position:relative;overflow:hidden;${isLast ? 'page-break-after:auto;' : 'page-break-after:always;'}">
+                  <div style="position:absolute;top:5px;right:10px;font-family:'Dancing Script',cursive;font-size:16px;">${label}</div>
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-top:30px;">
+                    <div style="flex:1;font-size:${size};text-align:${align};word-wrap:break-word;padding:10px;">${htmlContent}</div>
+                    ${qrDataUrl ? `<div style="margin-left:15px;"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
+                  </div>
+                  <div style="position:absolute;bottom:20px;left:0;width:100%;text-align:center;font-size:16px;font-weight:bold;"><em>⚠️Important : Unboxing video required for any claim.</em></div>
+                </div>`;
             });
 
-            win.document.write(`</body></html>`);
-            win.document.close();
-            win.print();
+            const fullHtml = `<!DOCTYPE html><html><head>
+              <title>Print ${pageSize}</title>
+              <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+              <style>@page{size:${pageSize} portrait;margin:10mm;}body{font-family:${fontFamily};margin:0;padding:0;}</style>
+            </head><body>${pagesHtml}</body></html>`;
+
+            // Use hidden iframe — works on mobile (window.open is blocked by mobile browsers)
+            let iframe = document.getElementById('print-frame');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'print-frame';
+                iframe.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px;';
+                document.body.appendChild(iframe);
+            }
+            iframe.srcdoc = fullHtml;
+            iframe.onload = function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            };
         }
 
         // Start with one box
