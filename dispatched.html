@@ -282,7 +282,6 @@
                     <th>Timestamp</th>
                     <th>Status</th>
                     <th>Address</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -360,7 +359,6 @@
                     <td class="td-time">${displayDate}</td>
                     <td><span class="td-status">Dispatched</span></td>
                     <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
-                    <td><button class="delete-btn" onclick="deleteOrder('${row.timestamp}')">Delete</button></td>
                 `;
                 tbody.appendChild(tr);
             });
