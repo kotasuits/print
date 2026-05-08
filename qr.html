@@ -457,25 +457,21 @@
                 </div>`;
             });
 
-            const fullHtml = `<!DOCTYPE html><html><head>
-              <title>Print ${pageSize}</title>
-              <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-              <style>@page{size:${pageSize} portrait;margin:10mm;}body{font-family:${fontFamily};margin:0;padding:0;}</style>
-            </head><body>${pagesHtml}</body></html>`;
+            // Body-swap: universally reliable on all mobile browsers
+            const savedBody = document.body.innerHTML;
+            const savedTitle = document.title;
 
-            // Use hidden iframe — works on mobile (window.open is blocked by mobile browsers)
-            let iframe = document.getElementById('print-frame');
-            if (!iframe) {
-                iframe = document.createElement('iframe');
-                iframe.id = 'print-frame';
-                iframe.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px;';
-                document.body.appendChild(iframe);
-            }
-            iframe.srcdoc = fullHtml;
-            iframe.onload = function() {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            };
+            const style = document.createElement('style');
+            style.textContent = `@page{size:${pageSize} portrait;margin:10mm;}body{font-family:${fontFamily};margin:0;padding:0;}`;
+            document.head.appendChild(style);
+
+            document.body.innerHTML = pagesHtml;
+            document.title = 'Print Labels';
+            window.print();
+
+            document.body.innerHTML = savedBody;
+            document.title = savedTitle;
+            style.remove();
         }
 
         // Start with one box
