@@ -457,21 +457,18 @@
                 </div>`;
             });
 
-            // Body-swap: universally reliable on all mobile browsers
-            const savedBody = document.body.innerHTML;
-            const savedTitle = document.title;
-
-            const style = document.createElement('style');
-            style.textContent = `@page{size:${pageSize} portrait;margin:10mm;}body{font-family:${fontFamily};margin:0;padding:0;}`;
-            document.head.appendChild(style);
-
-            document.body.innerHTML = pagesHtml;
-            document.title = 'Print Labels';
-            window.print();
-
-            document.body.innerHTML = savedBody;
-            document.title = savedTitle;
-            style.remove();
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html><html><head>
+              <title>Print ${pageSize}</title>
+              <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+              <style>
+                @page { size: ${pageSize} portrait; margin: 10mm; }
+                body { font-family: ${fontFamily}; margin: 0; padding: 0; }
+              </style>
+            </head><body>${pagesHtml}</body></html>`);
+            win.document.close();
+            win.focus();
+            win.print();
         }
 
         // Start with one box
