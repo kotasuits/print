@@ -181,23 +181,30 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .nav-links {
-            margin-top: 40px;
             display: flex;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
             max-width: 1000px;
             justify-content: center;
+            margin-bottom: 25px;
         }
 
         .nav-links a {
-            color: #60a5fa;
+            color: #3b82f6;
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.3s;
+            padding: 8px 16px;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
         }
 
         .nav-links a:hover {
-            color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
         }
 
         /* Setup warning */
@@ -242,6 +249,11 @@
         </button>
     </div>
 
+    <div class="nav-links">
+        <a href="qr.html">📄 Generate Labels</a>
+        <a href="scanner.html">🔍 Open QR Scanner</a>
+    </div>
+
     <div class="glass-card">
         <div id="setup-warning" class="setup-warning" style="display: none;">
             <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to fetch data.
@@ -279,10 +291,7 @@
         </table>
     </div>
 
-    <div class="nav-links">
-        <a href="qr.html">← Generate Labels</a>
-        <a href="scanner.html">← QR Scanner</a>
-    </div>
+
 
     <script>
         // ========================================================================
