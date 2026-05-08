@@ -206,7 +206,10 @@
             fps: 10, 
             qrbox: {width: 250, height: 250},
             aspectRatio: 1.0,
-            rememberLastUsedCamera: true
+            rememberLastUsedCamera: true,
+            videoConstraints: {
+                facingMode: { ideal: "environment" }
+            }
         }, false);
         
         let isProcessing = false;
