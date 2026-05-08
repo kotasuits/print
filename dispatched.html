@@ -309,101 +309,109 @@
             fetchData();
         }
 
+        function renderData(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('empty').style.display = 'block';
+                document.getElementById('data-table').style.display = 'none';
+                return;
+            }
+
+            const reversedData = [...data].reverse();
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
+
+            reversedData.forEach(row => {
+                // Skip empty rows
+                if (!row.timestamp && !row.name && !row.phone) return;
+
+                // Skip deleted rows
+                if (deletedOrders.includes(row.timestamp)) return;
+
+                let dispAddress = row.address || row.Address || '';
+                let dispName = row.name || row.Name || '';
+
+                if (!dispAddress || dispAddress.trim() === '') {
+                    dispAddress = dispName;
+                }
+
+                if (!dispAddress || dispAddress.trim() === '') {
+                    const vals = Object.values(row);
+                    if (vals.length >= 4 && vals[3] && typeof vals[3] === 'string' && vals[3].trim() !== '') {
+                        dispAddress = vals[3];
+                    } else if (vals.length >= 2 && vals[1] && typeof vals[1] === 'string' && vals[1].trim() !== '') {
+                        dispAddress = vals[1];
+                    }
+                }
+
+                let displayDate = row.timestamp || 'N/A';
+                if (row.timestamp && row.timestamp !== 'N/A') {
+                    if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                        displayDate = row.timestamp.split(',')[0].trim();
+                    } else {
+                        let d = new Date(row.timestamp);
+                        if (!isNaN(d.getTime())) {
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const month = String(d.getMonth() + 1).padStart(2, '0');
+                            const year = d.getFullYear();
+                            displayDate = `${day}/${month}/${year}`;
+                        } else {
+                            displayDate = row.timestamp.split(',')[0].trim();
+                        }
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-name', dispName.toLowerCase());
+                tr.setAttribute('data-phone', (row.phone || '').toLowerCase());
+                tr.innerHTML = `
+                    <td class="td-time">${displayDate}</td>
+                    <td><span class="td-status">Dispatched</span></td>
+                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
+                    <td><button class="delete-btn" onclick="deleteOrder('${row.timestamp}')">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (tbody.children.length === 0) {
+                document.getElementById('empty').style.display = 'block';
+                document.getElementById('data-table').style.display = 'none';
+            } else {
+                document.getElementById('empty').style.display = 'none';
+                document.getElementById('data-table').style.display = 'table';
+            }
+        }
+
         function fetchData() {
             if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
 
-            document.getElementById('loading').style.display = 'block';
+            // Load cached data instantly
+            const cached = localStorage.getItem('dispatchedCache');
+            if (cached) {
+                try {
+                    renderData(JSON.parse(cached));
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('empty').style.display = 'none';
+                } catch(e) {}
+            }
+
+            document.getElementById('loading').style.display = cached ? 'none' : 'block';
             document.getElementById('error').style.display = 'none';
-            document.getElementById('empty').style.display = 'none';
-            document.getElementById('data-table').style.display = 'none';
-            document.getElementById('table-body').innerHTML = '';
 
             fetch(GOOGLE_WEB_APP_URL)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
-                    
-                    if (!data || data.length === 0) {
-                        document.getElementById('empty').style.display = 'block';
-                        return;
-                    }
-
-                    // Sort data so newest is first (assuming timestamp can be parsed)
-                    // If rows are appended to sheet, latest are at the end, so reverse it
-                    data.reverse();
-
-                    const tbody = document.getElementById('table-body');
-                    const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
-                    
-                    data.forEach(row => {
-                        // Skip empty rows
-                        if (!row.timestamp && !row.name && !row.phone) return;
-                        
-                        // Skip deleted rows
-                        if (deletedOrders.includes(row.timestamp)) return;
-
-                        let dispAddress = row.address || row.Address || '';
-                        let dispName = row.name || row.Name || '';
-                        
-                        // If address is missing, use name (old QR codes put full address in name)
-                        if (!dispAddress || dispAddress.trim() === '') {
-                            dispAddress = dispName;
-                        }
-                        
-                        // If still empty due to missing headers in Google Sheet, use positional values
-                        if (!dispAddress || dispAddress.trim() === '') {
-                             const vals = Object.values(row);
-                             // vals[1] usually corresponds to column B (Name/Address)
-                             if (vals.length >= 4 && vals[3] && typeof vals[3] === 'string' && vals[3].trim() !== '') {
-                                 dispAddress = vals[3];
-                             } else if (vals.length >= 2 && vals[1] && typeof vals[1] === 'string' && vals[1].trim() !== '') {
-                                 dispAddress = vals[1];
-                             }
-                        }
-
-                        let displayDate = row.timestamp || 'N/A';
-                        if (row.timestamp && row.timestamp !== 'N/A') {
-                            // Handle "DD/MM/YYYY, HH:MM:SS" format generated by some locales
-                            if (row.timestamp.match(/^\\d{1,2}\\/\\d{1,2}\\/\\d{4}/)) {
-                                displayDate = row.timestamp.split(',')[0].trim();
-                            } else {
-                                // Handle ISO dates or "Fri May..." strings
-                                let d = new Date(row.timestamp);
-                                if (!isNaN(d.getTime())) {
-                                    const day = String(d.getDate()).padStart(2, '0');
-                                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                                    const year = d.getFullYear();
-                                    displayDate = `${day}/${month}/${year}`;
-                                } else {
-                                    // Fallback to taking everything before a comma or space
-                                    displayDate = row.timestamp.split(',')[0].split(' ')[0].trim();
-                                }
-                            }
-                        }
-
-                        const tr = document.createElement('tr');
-                        tr.setAttribute('data-name', dispName.toLowerCase());
-                        tr.setAttribute('data-phone', (row.phone || '').toLowerCase());
-                        tr.innerHTML = `
-                            <td class="td-time">${displayDate}</td>
-                            <td><span class="td-status">Dispatched</span></td>
-                            <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
-                            <td><button class="delete-btn" onclick="deleteOrder('${row.timestamp}')">Delete</button></td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-
-                    if (tbody.children.length === 0) {
-                        document.getElementById('empty').style.display = 'block';
-                        document.getElementById('data-table').style.display = 'none';
-                    } else {
-                        document.getElementById('data-table').style.display = 'table';
-                    }
+                    // Save fresh data to cache
+                    localStorage.setItem('dispatchedCache', JSON.stringify(data));
+                    renderData(data);
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                     document.getElementById('loading').style.display = 'none';
-                    document.getElementById('error').style.display = 'block';
+                    if (!cached) {
+                        document.getElementById('error').style.display = 'block';
+                    }
                 });
         }
 
