@@ -396,15 +396,13 @@
             const tr = table.getElementsByTagName("tr");
 
             for (let i = 1; i < tr.length; i++) {
-                const nameValue = tr[i].getAttribute('data-name');
-                const phoneValue = tr[i].getAttribute('data-phone');
-                if (nameValue !== null || phoneValue !== null) {
-                    if ((nameValue && nameValue.indexOf(input) > -1) || (phoneValue && phoneValue.indexOf(input) > -1)) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }       
+                // Search the entire text content of the row
+                const rowText = tr[i].innerText.toLowerCase();
+                if (rowText.includes(input)) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
 
