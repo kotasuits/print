@@ -388,8 +388,11 @@
             document.getElementById('loading').style.display = cached ? 'none' : 'block';
             document.getElementById('error').style.display = 'none';
 
-            fetch(GOOGLE_WEB_APP_URL)
-                .then(response => response.json())
+            fetch(GOOGLE_WEB_APP_URL, { method: 'GET', redirect: 'follow' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
                     // Save fresh data to cache
@@ -399,11 +402,12 @@
                 .catch(error => {
                     console.error('Error fetching data:', error);
                     document.getElementById('loading').style.display = 'none';
-                    if (!cached) {
-                        document.getElementById('error').style.display = 'block';
-                    }
                     // Auto-clear bad cache so next refresh works fresh
                     localStorage.removeItem('dispatchedCache');
+                    if (!cached) {
+                        document.getElementById('error-msg').textContent = 'Failed to load data. Try clicking "Clear Cache" then "Refresh". If issue persists, make sure the page is opened via a browser (not file://).';
+                        document.getElementById('error').style.display = 'block';
+                    }
                 });
         }
 
