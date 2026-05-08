@@ -465,7 +465,12 @@
       <body>
     `);
 
-            boxes.forEach((box) => {
+            const validBoxes = Array.from(boxes).filter(box => {
+                const text = box.querySelector('.editable').innerText.trim();
+                return text !== '';
+            });
+
+            validBoxes.forEach((box, index) => {
                 const editable = box.querySelector('.editable');
                 const labelBtn = box.querySelector('.kdo-label');
 
@@ -475,33 +480,34 @@
                 const size = window.getComputedStyle(editable).fontSize;
                 const align = window.getComputedStyle(editable).textAlign;
 
-                if (plainText) {
-                    // Extract structured data for QR
-                    const phoneMatch = plainText.match(/\\b\\d{10}\\b/);
-                    const pincodeMatch = plainText.match(/\\b\\d{6}\\b/);
-                    const linesText = plainText.split('\\n').filter(l => l.trim() !== '');
-                    const name = linesText.length > 0 ? linesText[0] : '';
+                // Extract structured data for QR
+                const phoneMatch = plainText.match(/\\b\\d{10}\\b/);
+                const pincodeMatch = plainText.match(/\\b\\d{6}\\b/);
+                const linesText = plainText.split('\\n').filter(l => l.trim() !== '');
+                const name = linesText.length > 0 ? linesText[0] : '';
 
-                    const qrData = {
-                        name: name,
-                        phone: phoneMatch ? phoneMatch[0] : '',
-                        pincode: pincodeMatch ? pincodeMatch[0] : '',
-                        address: plainText
-                    };
+                const qrData = {
+                    name: name,
+                    phone: phoneMatch ? phoneMatch[0] : '',
+                    pincode: pincodeMatch ? pincodeMatch[0] : '',
+                    address: plainText
+                };
 
-                    // Generate QR
-                    let qrDiv = document.createElement('div');
-                    new QRCode(qrDiv, {
-                        text: JSON.stringify(qrData),
-                        width: 512,
-                        height: 512,
-                        correctLevel: QRCode.CorrectLevel.L
-                    });
-                    let canvas = qrDiv.querySelector('canvas');
-                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+                // Generate QR
+                let qrDiv = document.createElement('div');
+                new QRCode(qrDiv, {
+                    text: JSON.stringify(qrData),
+                    width: 512,
+                    height: 512,
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+                let canvas = qrDiv.querySelector('canvas');
+                let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
 
-                    win.document.write(`
-            <div class="page">
+                const isLast = (index === validBoxes.length - 1);
+                
+                win.document.write(`
+            <div class="page" ${isLast ? 'style="page-break-after: avoid;"' : ''}>
               <div class="label">${label}</div>
               <div style="display: flex; justify-content: space-between; align-items: flex-start; height: 100%; padding-top: 30px;">
                   <div class="content" style="flex: 1; font-size:${size}; text-align:${align}">${htmlContent}</div>
