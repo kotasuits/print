@@ -259,7 +259,7 @@
             <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to fetch data.
         </div>
 
-        <div class="search-container" id="search-container" style="display: none;">
+        <div class="search-container" id="search-container">
             <input type="text" id="searchInput" placeholder="🔍 Search customer by name or phone..." onkeyup="filterTable()">
         </div>
 
@@ -325,11 +325,8 @@
                     
                     if (!data || data.length === 0) {
                         document.getElementById('empty').style.display = 'block';
-                        document.getElementById('search-container').style.display = 'none';
                         return;
                     }
-
-                    document.getElementById('search-container').style.display = 'block';
 
                     // Sort data so newest is first (assuming timestamp can be parsed)
                     // If rows are appended to sheet, latest are at the end, so reverse it
