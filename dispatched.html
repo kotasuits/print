@@ -103,9 +103,10 @@
         }
 
         th, td {
-            padding: 16px;
+            padding: 14px 20px;
             text-align: left;
             border-bottom: 1px solid var(--border);
+            vertical-align: top;
         }
 
         th {
@@ -337,18 +338,16 @@
 
                 let displayDate = row.timestamp || 'N/A';
                 if (row.timestamp && row.timestamp !== 'N/A') {
-                    if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                        displayDate = row.timestamp.split(',')[0].trim();
-                    } else {
-                        let d = new Date(row.timestamp);
-                        if (!isNaN(d.getTime())) {
-                            const day = String(d.getDate()).padStart(2, '0');
-                            const month = String(d.getMonth() + 1).padStart(2, '0');
-                            const year = d.getFullYear();
-                            displayDate = `${day}/${month}/${year}`;
-                        } else {
-                            displayDate = row.timestamp.split(',')[0].trim();
-                        }
+                    let d = new Date(row.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const mins = String(d.getMinutes()).padStart(2, '0');
+                        displayDate = `${day}/${month}/${year} ${hours}:${mins}`;
+                    } else if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                        displayDate = row.timestamp; // already formatted
                     }
                 }
 
