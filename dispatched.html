@@ -423,21 +423,22 @@
                 .then(data => {
                     if (data.status === "success") {
                         console.log("Successfully deleted from sheet.");
+                        // Hide on frontend only after success
+                        let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
+                        if (!deletedOrders.includes(timestamp)) {
+                            deletedOrders.push(timestamp);
+                            localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
+                        }
+                        fetchData(); // Refresh table to remove the deleted row
                     } else {
                         console.error("Failed to delete from sheet: " + (data.message || "Unknown error"));
+                        alert("Failed to delete from Google Sheets. Error: " + data.message);
                     }
                 })
                 .catch(error => {
                     console.error("Error deleting from sheet:", error);
+                    alert("Network error. Could not delete.");
                 });
-
-                // Immediately hide on frontend for smooth UI experience
-                let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
-                if (!deletedOrders.includes(timestamp)) {
-                    deletedOrders.push(timestamp);
-                    localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
-                }
-                fetchData(); // Refresh table to remove the deleted row
             }
         }
     </script>
