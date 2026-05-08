@@ -118,6 +118,29 @@
             z-index: 1000;
         }
 
+        .switch-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .switch-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
         .status-toast.show {
             bottom: 40px;
         }
@@ -182,6 +205,7 @@
         </div>
 
         <div id="reader"></div>
+        <button class="switch-btn" onclick="switchCamera()">🔄 Switch Camera (Front/Back)</button>
     </div>
 
     <div class="nav-links">
@@ -202,20 +226,45 @@
         // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
 
         
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-            fps: 10, 
-            qrbox: {width: 250, height: 250},
-            aspectRatio: 1.0,
-            rememberLastUsedCamera: true
-        }, false);
-        
+        const html5QrCode = new Html5Qrcode("reader");
+        let currentFacingMode = "environment";
         let isProcessing = false;
 
         window.onload = function() {
             if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
                 document.getElementById('setup-warning').style.display = 'block';
             }
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            startScanner();
+        }
+
+        function startScanner() {
+            html5QrCode.start(
+                { facingMode: currentFacingMode },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error("Camera error:", err);
+                showToast('error', 'Camera not found or blocked.');
+            });
+        }
+
+        function switchCamera() {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            
+            if (html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    startScanner();
+                }).catch(err => {
+                    console.log("Failed to stop scanner", err);
+                });
+            } else {
+                startScanner();
+            }
         }
 
         function showToast(type, message) {
@@ -257,7 +306,9 @@
             }
 
             isProcessing = true;
-            html5QrcodeScanner.pause(true); // Pause scanning visually
+            if (html5QrCode.getState && html5QrCode.getState() === 2) {
+                html5QrCode.pause(true); // Pause scanning visually
+            }
             showToast('loading', 'Saving to Google Sheets...');
 
             // If user hasn't set the URL yet, simulate success for testing
@@ -265,7 +316,9 @@
                 setTimeout(() => {
                     showToast('error', 'Google Web App URL not configured!');
                     setTimeout(() => {
-                        html5QrcodeScanner.resume();
+                        if (html5QrCode.getState && html5QrCode.getState() === 3) {
+                            html5QrCode.resume();
+                        }
                         isProcessing = false;
                     }, 2000);
                 }, 1000);
@@ -295,7 +348,9 @@
             .finally(() => {
                 // Resume scanning after a delay to prevent accidental double scans
                 setTimeout(() => {
-                    html5QrcodeScanner.resume();
+                    if (html5QrCode.getState && html5QrCode.getState() === 3) {
+                        html5QrCode.resume();
+                    }
                     isProcessing = false;
                 }, 2000);
             });
