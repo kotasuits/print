@@ -9,17 +9,34 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Outfit:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&display=swap"
         rel="stylesheet">
-    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
             padding: 30px;
-            background: #f5f5f5;
-            color: #333;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
         }
 
         h1 {
             text-align: center;
-            color: #444;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
         }
 
         .controls {
@@ -28,6 +45,12 @@
             gap: 10px;
             justify-content: center;
             margin-bottom: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         button,
@@ -35,14 +58,29 @@
             padding: 10px 16px;
             font-size: 15px;
             border: none;
-            background-color: #007bff;
-            color: white;
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.5);
             border-radius: 6px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        button:hover, select:hover {
+            background-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        select {
+            background-color: #1e293b;
+            color: white;
+            outline: none;
+            border: 1px solid var(--border);
+        }
+        
+        select option {
+            background-color: #1e293b;
         }
 
         .textarea-container {
@@ -54,10 +92,13 @@
 
         .textarea-box {
             width: 30%;
-            background: transparent;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 10px;
+            padding: 20px;
             position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         .editable {
@@ -76,37 +117,69 @@
             outline: none;
             background: white;
             text-align: left;
+            color: #111; /* Keep black for printing */
+            margin-top: 15px;
         }
 
         .lock-btn {
             position: absolute;
-            top: 8px;
-            right: 10px;
-            background: #dc3545;
-            color: white;
-            border: none;
+            top: 10px;
+            right: 15px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.5);
             padding: 4px 8px;
             font-size: 12px;
             border-radius: 4px;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
-
+        .lock-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
 
         .kdo-label {
             position: absolute;
-            top: 8px;
-            left: 10px;
+            top: 10px;
+            left: 15px;
             font-family: 'Dancing Script', cursive;
-            font-size: 16px;
+            font-size: 18px;
             background: transparent;
-            color: #333;
+            color: #f8fafc;
             border: none;
             cursor: pointer;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .locked .editable {
-            background: #eee;
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .nav-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+        }
+
+        .nav-links a:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
         }
     </style>
 </head>
@@ -114,6 +187,11 @@
 <body>
 
     <h1>Custom PDF & Print Maker</h1>
+
+    <div class="nav-links">
+        <a href="scanner.html">🔍 Open QR Scanner</a>
+        <a href="dispatched.html">📦 View Dispatched Orders</a>
+    </div>
 
     <div class="controls">
         <button onclick="addAddressBox()">Add Box</button>
