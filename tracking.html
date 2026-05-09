@@ -212,7 +212,7 @@ async function getFileSHA(path){
 // Upload image file to GitHub
 async function uploadImage(filename, dataUrl){
   const base64 = dataUrl.split(',')[1];
-  const path = `photos/${filename}`;
+  const path = `images/${filename}`;
   const sha = await getFileSHA(path);
   const body = {message:`Add tracking photo: ${filename}`,content:base64,branch:cfg.branch};
   if(sha) body.sha = sha;
@@ -350,7 +350,7 @@ async function uploadAll(){
       const ts=new Date().toISOString();
       const fname=`${Date.now()}_${p.name.replace(/\s+/g,'_').slice(0,20)}.jpg`;
       const url=await uploadImage(fname, p.dataUrl);
-      const rec={id:p.id,name:p.name,pincode:p.pincode,phone:p.phone,photoUrl:url,photoPath:`photos/${fname}`,uploadedAt:ts};
+      const rec={id:p.id,name:p.name,pincode:p.pincode,phone:p.phone,photoUrl:url,photoPath:`images/${fname}`,uploadedAt:ts};
       records.push(rec);
       // Push updated records.json after each photo
       const res = await fetchRecordsJSON();
