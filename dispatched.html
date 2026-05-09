@@ -353,8 +353,8 @@
                 }
 
                 const tr = document.createElement('tr');
-                tr.setAttribute('data-name', dispName.toLowerCase());
-                tr.setAttribute('data-phone', (row.phone || '').toLowerCase());
+                tr.setAttribute('data-name', String(dispName).toLowerCase());
+                tr.setAttribute('data-phone', String(row.phone || '').toLowerCase());
                 tr.innerHTML = `
                     <td class="td-time">${displayDate}</td>
                     <td><span class="td-status">Dispatched</span></td>
