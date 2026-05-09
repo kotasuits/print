@@ -457,141 +457,84 @@
             doc.save('custom.pdf');
         }
 
-
         function printAddresses() {
             const boxes = document.querySelectorAll('.textarea-box');
             const fontFamily = document.getElementById('fontFamily').value;
             const pageSize = document.getElementById('pageSize').value;
 
-            // Open the popup window FIRST (must be synchronous / direct user gesture)
+            // Generate all page data including QR codes first
+            const pageData = [];
+            boxes.forEach((box) => {
+                const editable = box.querySelector('.editable');
+                const labelBtn = box.querySelector('.kdo-label');
+
+                const label = labelBtn ? labelBtn.textContent : '';
+                const content = editable.innerHTML.trim();
+                const plainText = editable.innerText.trim();
+                const size = window.getComputedStyle(editable).fontSize;
+                const align = window.getComputedStyle(editable).textAlign;
+
+                if (content) {
+                    const phoneMatch = plainText.match(/\b\d{10}\b/);
+                    const pincodeMatch = plainText.match(/\b\d{6}\b/);
+                    const linesText = plainText.split('\n').filter(l => l.trim() !== '');
+                    const name = linesText.length > 0 ? linesText[0] : '';
+
+                    const qrData = {
+                        name: name,
+                        phone: phoneMatch ? phoneMatch[0] : '',
+                        pincode: pincodeMatch ? pincodeMatch[0] : '',
+                        address: plainText
+                    };
+
+                    let qrDiv = document.createElement('div');
+                    new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
+                    let canvas = qrDiv.querySelector('canvas');
+                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+
+                    pageData.push({ label, content, size, align, qrDataUrl });
+                }
+            });
+
             const win = window.open('', '_blank', 'width=800,height=900');
-            if (!win) {
-                alert('Popup was blocked! Please allow popups for this site and try again.');
-                return;
-            }
+            if (!win) { alert('Popup blocked!'); return; }
 
-            // Show a loading message while QR codes are generated
-            win.document.write('<html><body style="font-family:sans-serif;padding:30px;text-align:center"><p>⏳ Preparing print layout…</p></body></html>');
-
-            // Small delay to allow QR canvas to render
-            setTimeout(() => {
-                // Generate all page data including QR codes
-                const pageData = [];
-                boxes.forEach((box) => {
-                    const editable = box.querySelector('.editable');
-                    const labelBtn = box.querySelector('.kdo-label');
-
-                    const label = labelBtn ? labelBtn.textContent : '';
-                    const content = editable.innerHTML.trim();
-                    const plainText = editable.innerText.trim();
-                    const size = window.getComputedStyle(editable).fontSize;
-                    const align = window.getComputedStyle(editable).textAlign;
-
-                    if (content) {
-                        const phoneMatch = plainText.match(/\b\d{10}\b/);
-                        const pincodeMatch = plainText.match(/\b\d{6}\b/);
-                        const linesText = plainText.split('\n').filter(l => l.trim() !== '');
-                        const name = linesText.length > 0 ? linesText[0] : '';
-
-                        const qrData = {
-                            name: name,
-                            phone: phoneMatch ? phoneMatch[0] : '',
-                            pincode: pincodeMatch ? pincodeMatch[0] : '',
-                            address: plainText
-                        };
-
-                        let qrDiv = document.createElement('div');
-                        new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
-
-                        // Give canvas a tick to finish drawing
-                        let canvas = qrDiv.querySelector('canvas');
-                        let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
-
-                        pageData.push({ label, content, size, align, qrDataUrl });
-                    }
-                });
-
-                win.document.open();
-                win.document.write(`
-      <html>
-      <head>
-        <title>Print ${pageSize}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: ${pageSize} portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: ${fontFamily};
-            margin: 0;
-            padding: 0;
-          }
-          .page {
-            width: 100%;
-            height: 100%;
-            page-break-after: always;
-            box-sizing: border-box;
-            padding: 20px;
-            position: relative;
-          }
-          .label {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-          }
-          .body-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-top: 30px;
-          }
-          .content {
-            flex: 1;
-            font-size: 16px;
-            word-wrap: break-word;
-            padding: 10px;
-            border-radius: 0;
-            background: transparent;
-          }
-          .qr-img {
-            margin-left: 15px;
-            flex-shrink: 0;
-          }
-          .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-    `);
+            win.document.open();
+            win.document.write(`
+              <html>
+              <head>
+                <title>Print ${pageSize}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+                <style>
+                  @page { size: ${pageSize} portrait; margin: 10mm; }
+                  body { font-family: ${fontFamily}; margin: 0; padding: 0; }
+                  .page { width: 100%; height: 100%; page-break-after: always; box-sizing: border-box; padding: 20px; position: relative; }
+                  .label { position: absolute; top: 5px; right: 10px; font-family: 'Dancing Script', cursive; font-size: 16px; }
+                  .body-row { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 30px; }
+                  .content { flex: 1; font-size: 16px; word-wrap: break-word; padding: 10px; }
+                  .qr-img { margin-left: 15px; flex-shrink: 0; }
+                  .note { position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 16px; font-weight: bold; }
+                </style>
+              </head>
+              <body>
+            `);
 
             pageData.forEach(({ label, content, size, align, qrDataUrl }) => {
                 win.document.write(`
-            <div class="page">
-              <div class="label">${label}</div>
-              <div class="body-row">
-                <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
-                ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
-              </div>
-              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-            </div>
-          `);
-                });
+                    <div class="page">
+                      <div class="label">${label}</div>
+                      <div class="body-row">
+                        <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
+                        ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
+                      </div>
+                      <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
+                    </div>
+                  `);
+            });
 
-                win.document.write(`</body></html>`);
-                win.document.close();
-                // Short delay so browser finishes rendering before print dialog
-                setTimeout(() => win.print(), 100);
-            }, 50);
+            win.document.write(`</body></html>`);
+            win.document.close();
+            win.print();
         }
 
         // Start with one box
