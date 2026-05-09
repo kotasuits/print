@@ -647,85 +647,93 @@
                 }
             });
 
+            if (pageData.length === 0) {
+                alert('Please add at least one address before printing.');
+                return;
+            }
+
+            // Build the pages HTML string
+            const pagesHtml = pageData.map(({ label, content, size, align, qrDataUrl }) => `
+                <div class="print-page">
+                  <div class="print-label">${label}</div>
+                  <div class="print-body-row">
+                    <div class="print-content" style="font-size:${size}; text-align:${align}">${content}</div>
+                    ${qrDataUrl ? `<div class="print-qr"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
+                  </div>
+                  <div class="print-note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
+                </div>`).join('');
+
+            const printStyles = `
+                @page { size: ${pageSize} portrait; margin: 10mm; }
+                body { font-family: ${fontFamily}; margin: 0; padding: 0; }
+                .print-page {
+                    width: 100%; min-height: 96vh;
+                    page-break-after: always;
+                    box-sizing: border-box;
+                    padding: 20px;
+                    position: relative;
+                }
+                .print-label {
+                    position: absolute; top: 5px; right: 10px;
+                    font-family: 'Dancing Script', cursive; font-size: 16px;
+                }
+                .print-body-row {
+                    display: flex; justify-content: space-between;
+                    align-items: flex-start; padding-top: 30px;
+                }
+                .print-content {
+                    flex: 1; word-wrap: break-word; padding: 10px;
+                    background: transparent;
+                }
+                .print-qr { margin-left: 15px; flex-shrink: 0; }
+                .print-note {
+                    position: absolute; bottom: 20px; left: 0;
+                    width: 100%; text-align: center;
+                    font-size: 16px; font-weight: bold;
+                }`;
+
+            // Try popup first (desktop) — mobile browsers block it
             const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`
-      <html>
-      <head>
-        <title>Print ${pageSize}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: ${pageSize} portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: ${fontFamily};
-            margin: 0;
-            padding: 0;
-          }
-          .page {
-            width: 100%;
-            height: 100%;
-            page-break-after: always;
-            box-sizing: border-box;
-            padding: 20px;
-            position: relative;
-          }
-          .label {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-          }
-          .body-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-top: 30px;
-          }
-          .content {
-            flex: 1;
-            font-size: 16px;
-            word-wrap: break-word;
-            padding: 10px;
-            border-radius: 0;
-            background: transparent;
-          }
-          .qr-img {
-            margin-left: 15px;
-            flex-shrink: 0;
-          }
-          .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-    `);
 
-            pageData.forEach(({ label, content, size, align, qrDataUrl }) => {
-                win.document.write(`
-            <div class="page">
-              <div class="label">${label}</div>
-              <div class="body-row">
-                <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
-                ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
-              </div>
-              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-            </div>
-          `);
-            });
+            if (win && !win.closed) {
+                // Desktop: use popup window
+                win.document.write(`<!DOCTYPE html><html><head>
+                    <title>Print ${pageSize}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+                    <style>${printStyles}</style>
+                </head><body>${pagesHtml}</body></html>`);
+                win.document.close();
+                win.print();
+            } else {
+                // Mobile fallback: inject into current page and print directly
+                let styleTag = document.getElementById('mobile-print-style');
+                if (!styleTag) {
+                    styleTag = document.createElement('style');
+                    styleTag.id = 'mobile-print-style';
+                    document.head.appendChild(styleTag);
+                }
+                styleTag.textContent = `
+                    @media print {
+                        body > *:not(#mobile-print-container) { display: none !important; }
+                        #mobile-print-container { display: block !important; }
+                    }
+                    #mobile-print-container { display: none; }
+                    ${printStyles}`;
 
-            win.document.write(`</body></html>`);
-            win.document.close();
-            win.print();
+                let container = document.getElementById('mobile-print-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'mobile-print-container';
+                    document.body.appendChild(container);
+                }
+                container.innerHTML = pagesHtml;
+
+                setTimeout(() => {
+                    window.print();
+                    // Clean up after print dialog closes
+                    setTimeout(() => { container.innerHTML = ''; }, 1000);
+                }, 300);
+            }
         }
 
         // Start with one box
