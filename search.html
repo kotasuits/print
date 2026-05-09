@@ -78,7 +78,7 @@ mark{background:rgba(253,224,71,.3);color:#fde047;border-radius:3px;padding:0 2p
 </div>
 
 <!-- GitHub Config -->
-<details style="margin-bottom:20px;cursor:pointer;">
+<details style="margin-bottom:20px;cursor:pointer;" id="admin-cfg-panel">
   <summary style="color:var(--muted);font-size:0.85rem;text-align:right;">Admin Settings</summary>
   <div class="card" style="margin-top:10px;cursor:default;">
     <div style="font-size:1rem;font-weight:600;color:var(--pl);margin-bottom:14px;">⚙️ GitHub Source</div>
@@ -87,8 +87,7 @@ mark{background:rgba(253,224,71,.3);color:#fde047;border-radius:3px;padding:0 2p
       <div class="fld"><label>Branch</label><input type="text" id="cfg-branch" placeholder="main"></div>
       <button class="btn btn-s" onclick="loadAndSearch()" style="white-space:nowrap;">🔄 Load Records</button>
     </div>
-    <p style="margin-top:10px;font-size:.78rem;color:var(--muted);">For <strong>public</strong> repos, no token needed here. For private repos, also enter token below.</p>
-    <div class="fld" style="margin-top:10px;max-width:400px;"><label>GitHub Token (private repos only)</label><input type="password" id="cfg-token" placeholder="ghp_xxxx (optional for public repo)"></div>
+    <p style="margin-top:10px;font-size:.78rem;color:var(--muted);">If hosted on GitHub Pages, this configuration is ignored and records load automatically.</p>
   </div>
 </details>
 
@@ -133,15 +132,13 @@ function loadCfg(){
     const c=JSON.parse(localStorage.getItem(CFGKEY)||'{}');
     if(c.repo)  document.getElementById('cfg-repo').value=c.repo;
     if(c.branch)document.getElementById('cfg-branch').value=c.branch;
-    if(c.token) document.getElementById('cfg-token').value=c.token;
   }catch{}
 }
 function getCfg(){
   const repo=document.getElementById('cfg-repo').value.trim();
   const branch=document.getElementById('cfg-branch').value.trim()||'main';
-  const token=document.getElementById('cfg-token').value.trim();
-  if(repo) localStorage.setItem(CFGKEY,JSON.stringify({repo,branch,token}));
-  return{repo,branch,token};
+  if(repo) localStorage.setItem(CFGKEY,JSON.stringify({repo,branch}));
+  return{repo,branch};
 }
 
 // State helpers
@@ -152,35 +149,43 @@ function showState(id){
   document.getElementById('rstats').style.display='none';
 }
 
-// Load records from GitHub
+// Load records
 async function loadAndSearch(){
-  const{repo,branch,token}=getCfg();
-  if(!repo){ alert('Enter repository (owner/repo)'); return; }
   showState('load-st');
   try{
     let fetched = false;
+    
+    // First, try relative fetch (for GitHub Pages hosting)
     try {
-      // Try raw github user content FIRST WITHOUT HEADERS (Best for public repos, avoids CORS)
+      let res = await fetch('records.json');
+      if(res.ok) {
+        allRecords = await res.json();
+        fetched = true;
+        // If relative fetch works, hide the config panel
+        document.getElementById('admin-cfg-panel').style.display = 'none';
+      }
+    } catch(err) {
+      console.warn("Relative fetch failed", err);
+    }
+
+    // Fallback to configured raw URL
+    if(!fetched){
+      const{repo,branch}=getCfg();
+      if(!repo) throw new Error("No tracking repository configured.");
+      
       const rawUrl=`https://raw.githubusercontent.com/${repo}/${branch}/records.json`;
       let res=await fetch(rawUrl);
       if(res.ok){
         allRecords=await res.json();
         fetched = true;
+      } else {
+        // Fallback to API if raw fetch fails
+        const apiUrl=`https://api.github.com/repos/${repo}/contents/records.json?ref=${branch}`;
+        const apiRes=await fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'}});
+        if(!apiRes.ok) throw new Error('Tracking records not found. Ensure the repository is public.');
+        const d=await apiRes.json();
+        allRecords=JSON.parse(atob(d.content.replace(/\n/g,'')));
       }
-    } catch(err) {
-      console.warn("Raw fetch failed, trying API...", err);
-    }
-
-    if(!fetched){
-      // Fallback to GitHub API (Needed for private repos using token)
-      const headers={'Accept':'application/vnd.github.v3+json'};
-      if(token) headers['Authorization']='token '+token;
-      
-      const apiUrl=`https://api.github.com/repos/${repo}/contents/records.json?ref=${branch}`;
-      const apiRes=await fetch(apiUrl,{headers});
-      if(!apiRes.ok) throw new Error('records.json not found. Make sure repo is public or token is provided.');
-      const d=await apiRes.json();
-      allRecords=JSON.parse(atob(d.content.replace(/\n/g,'')));
     }
 
     showState('init-st');
