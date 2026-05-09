@@ -212,7 +212,7 @@ function doSearch(){
   if(q.length < 4){ showState('init-st'); return; }
 
   const matched=allRecords.filter(r=>
-    r.name.toLowerCase().includes(q)||r.pincode.toLowerCase().includes(q)||r.phone.toLowerCase().includes(q)
+    r.pincode.toLowerCase().includes(q)||r.phone.toLowerCase().includes(q)
   );
 
   ['init-st','empty-st','norec-st','load-st'].forEach(s=>document.getElementById(s).style.display='none');
