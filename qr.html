@@ -460,65 +460,15 @@
 
         function printAddresses() {
             const boxes = document.querySelectorAll('.textarea-box');
-            const pageSize = document.getElementById('pageSize').value;
             const fontFamily = document.getElementById('fontFamily').value;
+            const pageSize = document.getElementById('pageSize').value;
 
-            const win = window.open('', '_blank');
-            win.document.write(`
-<html>
-<head>
-    <title>Print Labels</title>
-    <style>
-        @page { size: ${pageSize}; margin: 0; }
-        body { margin: 0; font-family: ${fontFamily}, sans-serif; }
-        .page {
-            width: 100%;
-            height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            page-break-after: always;
-            position: relative;
-        }
-        .label {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            border: 2px solid #000;
-            padding: 5px 10px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .body-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .content {
-            flex: 1;
-            word-wrap: break-word;
-            line-height: 1.4;
-        }
-        .qr-img { margin-left: 15px; flex-shrink: 0; }
-        .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    `);
-
+            // Generate all page data including QR codes first
+            const pageData = [];
             boxes.forEach((box) => {
                 const editable = box.querySelector('.editable');
                 const labelBtn = box.querySelector('.kdo-label');
+
                 const label = labelBtn ? labelBtn.textContent : '';
                 const content = editable.innerHTML.trim();
                 const plainText = editable.innerText.trim();
@@ -526,33 +476,101 @@
                 const align = window.getComputedStyle(editable).textAlign;
 
                 if (content) {
-                    // Generate QR code
                     const phoneMatch = plainText.match(/\b\d{10}\b/);
                     const pincodeMatch = plainText.match(/\b\d{6}\b/);
                     const linesText = plainText.split('\n').filter(l => l.trim() !== '');
                     const name = linesText.length > 0 ? linesText[0] : '';
+
                     const qrData = {
                         name: name,
                         phone: phoneMatch ? phoneMatch[0] : '',
                         pincode: pincodeMatch ? pincodeMatch[0] : '',
                         address: plainText
                     };
+
                     let qrDiv = document.createElement('div');
                     new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
                     let canvas = qrDiv.querySelector('canvas');
                     let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
 
-                    win.document.write(`
-                <div class="page">
-                    <div class="label">${label}</div>
-                    <div class="body-row">
-                        <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
-                        ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
-                    </div>
-                    <div class="note"><em>⚠️ Important : Unboxing video required for any claim.</em></div>
-                </div>
-            `);
+                    pageData.push({ label, content, size, align, qrDataUrl });
                 }
+            });
+
+            const win = window.open('', '', 'width=800,height=900');
+            win.document.write(`
+      <html>
+      <head>
+        <title>Print ${pageSize}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: ${pageSize} portrait;
+            margin: 10mm;
+          }
+          body {
+            font-family: ${fontFamily};
+            margin: 0;
+            padding: 0;
+          }
+          .page {
+            width: 100%;
+            height: 100%;
+            page-break-after: always;
+            box-sizing: border-box;
+            padding: 20px;
+            position: relative;
+          }
+          .label {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 16px;
+          }
+          .body-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-top: 30px;
+          }
+          .content {
+            flex: 1;
+            font-size: 16px;
+            word-wrap: break-word;
+            padding: 10px;
+            border-radius: 0;
+            background: transparent;
+          }
+          .qr-img {
+            margin-left: 15px;
+            flex-shrink: 0;
+          }
+          .note {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+    `);
+
+            pageData.forEach(({ label, content, size, align, qrDataUrl }) => {
+                win.document.write(`
+            <div class="page">
+              <div class="label">${label}</div>
+              <div class="body-row">
+                <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
+                ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
+              </div>
+              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
+            </div>
+          `);
             });
 
             win.document.write(`</body></html>`);
