@@ -9,9 +9,6 @@
 :root{--primary:#6366f1;--pl:#818cf8;--bg:#0a0f1e;--card:rgba(20,30,55,.78);--inp:rgba(10,15,35,.7);--txt:#f1f5f9;--muted:#94a3b8;--bdr:rgba(255,255,255,.09);}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Outfit',sans-serif;}
 body{background:var(--bg);background-image:radial-gradient(ellipse at 80% 0%,rgba(34,211,238,.15),transparent 50%),radial-gradient(ellipse at 10% 100%,rgba(99,102,241,.15),transparent 50%);color:var(--txt);min-height:100vh;padding:28px 16px 60px;display:flex;flex-direction:column;align-items:center;}
-nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:26px;width:100%;max-width:940px;}
-nav a{color:var(--pl);text-decoration:none;font-weight:600;padding:7px 16px;border:1.5px solid rgba(99,102,241,.4);border-radius:8px;background:rgba(99,102,241,.08);transition:all .2s;font-size:.88rem;}
-nav a:hover,nav a.on{background:var(--primary);color:#fff;border-color:var(--primary);}
 .ph{text-align:center;margin-bottom:32px;width:100%;max-width:940px;}
 .ph h1{font-size:clamp(1.6rem,4vw,2.6rem);font-weight:700;background:linear-gradient(135deg,#22d3ee,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
 .ph p{color:var(--muted);}
@@ -75,16 +72,7 @@ mark{background:rgba(253,224,71,.3);color:#fde047;border-radius:3px;padding:0 2p
 @media(max-width:580px){#rgrid{grid-template-columns:1fr 1fr;}#imod .mi{width:90vw;}}
 </style>
 </head>
-<body>
-<nav>
-  <a href="qr.html">📄 Labels</a>
-  <a href="scanner.html">🔍 Scanner</a>
-  <a href="dispatched.html">📋 Dispatched</a>
-  <a href="tracking.html">📸 Upload Tracking</a>
-  <a href="search.html" class="on">🔎 Search Photos</a>
-</nav>
-
-<div class="ph">
+<body><div class="ph">
   <h1>🔎 Search Tracking Photos</h1>
   <p>Find delivery photos by customer name, pincode, or phone number.</p>
 </div>
@@ -170,19 +158,31 @@ async function loadAndSearch(){
   if(!repo){ alert('Enter repository (owner/repo)'); return; }
   showState('load-st');
   try{
-    const headers={'Accept':'application/vnd.github.v3+json'};
-    if(token) headers['Authorization']='token '+token;
-    const rawUrl=`https://raw.githubusercontent.com/${repo}/${branch}/records.json`;
-    let res=await fetch(rawUrl,{headers});
-    if(!res.ok){
+    let fetched = false;
+    try {
+      // Try raw github user content FIRST WITHOUT HEADERS (Best for public repos, avoids CORS)
+      const rawUrl=`https://raw.githubusercontent.com/${repo}/${branch}/records.json`;
+      let res=await fetch(rawUrl);
+      if(res.ok){
+        allRecords=await res.json();
+        fetched = true;
+      }
+    } catch(err) {
+      console.warn("Raw fetch failed, trying API...", err);
+    }
+
+    if(!fetched){
+      // Fallback to GitHub API (Needed for private repos using token)
+      const headers={'Accept':'application/vnd.github.v3+json'};
+      if(token) headers['Authorization']='token '+token;
+      
       const apiUrl=`https://api.github.com/repos/${repo}/contents/records.json?ref=${branch}`;
       const apiRes=await fetch(apiUrl,{headers});
-      if(!apiRes.ok) throw new Error('records.json not found. Upload some photos first.');
+      if(!apiRes.ok) throw new Error('records.json not found. Make sure repo is public or token is provided.');
       const d=await apiRes.json();
       allRecords=JSON.parse(atob(d.content.replace(/\n/g,'')));
-    }else{
-      allRecords=await res.json();
     }
+
     showState('init-st');
     const q=document.getElementById('si').value.trim();
     if(q.length >= 4) doSearch(); else showState('init-st');
