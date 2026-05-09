@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom PDF Maker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Outfit:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&display=swap"
-        rel="stylesheet">
+    <title>Dispatched Log</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --primary: #3b82f6;
@@ -21,153 +18,180 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
         body {
-            font-family: 'Outfit', 'Segoe UI', sans-serif;
-            padding: 30px;
             background-color: var(--bg);
             background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
                               radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
             color: var(--text-main);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
         }
 
-        h1 {
+        .header {
             text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media(max-width: 600px) {
+            .header { flex-direction: column; gap: 15px; }
+        }
+
+        .header-title h1 {
             font-size: 2.5rem;
             font-weight: 700;
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 25px;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        .header-title p {
+            color: var(--text-muted);
         }
 
-        button,
-        select {
-            padding: 10px 16px;
-            font-size: 15px;
-            border: none;
-            background-color: rgba(59, 130, 246, 0.2);
+        button.refresh-btn {
+            background: rgba(59, 130, 246, 0.2);
             color: #60a5fa;
             border: 1px solid rgba(59, 130, 246, 0.5);
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        button:hover, select:hover {
-            background-color: rgba(59, 130, 246, 0.4);
+        button.refresh-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
             transform: translateY(-2px);
         }
 
-        select {
-            background-color: #1e293b;
-            color: white;
-            outline: none;
-            border: 1px solid var(--border);
-        }
-        
-        select option {
-            background-color: #1e293b;
-        }
-
-        .textarea-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .textarea-box {
-            width: 30%;
+        .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 1000px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        .td-name { font-weight: 600; color: #f8fafc; }
+        .td-time { color: #94a3b8; font-size: 0.85rem; }
+        .td-status {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 20px;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .editable {
-            width: 100%;
-            min-height: 100px;
-            max-height: 300px;
-            overflow-y: auto;
-            word-wrap: break-word;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: inherit;
-            box-sizing: border-box;
-            resize: vertical;
+            color: white;
+            font-size: 1rem;
             outline: none;
-            background: white;
-            text-align: left;
-            color: #111; /* Keep black for printing */
-            margin-top: 15px;
+            transition: all 0.3s ease;
         }
 
-        .lock-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .search-container input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
-        .lock-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
+        .loading-state, .error-state, .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
         }
 
-        .kdo-label {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 18px;
-            background: transparent;
-            color: #f8fafc;
-            border: none;
-            cursor: pointer;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
         }
 
-        .locked .editable {
-            background: #e2e8f0;
-            color: #64748b;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .nav-links {
             display: flex;
             gap: 15px;
+            width: 100%;
+            max-width: 1000px;
             justify-content: center;
             margin-bottom: 25px;
         }
 
         .nav-links a {
-            color: #60a5fa;
+            color: #3b82f6;
             text-decoration: none;
             font-weight: 600;
             padding: 8px 16px;
@@ -184,411 +208,286 @@
             border-color: #3b82f6;
         }
 
-        /* ===== MOBILE RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            body {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.6rem;
-                margin-bottom: 15px;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .nav-links a {
-                flex: 1 1 auto;
-                text-align: center;
-                font-size: 13px;
-                padding: 8px 10px;
-            }
-
-            .controls {
-                padding: 15px 12px;
-                gap: 8px;
-            }
-
-            button,
-            select {
-                width: 100%;
-                font-size: 14px;
-                padding: 10px 12px;
-                box-sizing: border-box;
-            }
-
-            .textarea-box {
-                width: 100%;
-                padding: 15px;
-            }
-
-            .textarea-container {
-                gap: 15px;
-            }
-
-            .editable {
-                min-height: 120px;
-                font-size: 15px;
-            }
+        /* Setup warning */
+        .setup-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: center;
         }
 
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.3rem;
-            }
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
 
-            button,
-            select {
-                font-size: 13px;
-                padding: 9px 10px;
-            }
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            transform: translateY(-1px);
         }
     </style>
 </head>
-
 <body>
 
-    <h1>Custom PDF & Print Maker</h1>
+    <div class="header">
+        <div class="header-title">
+            <h1>Dispatched Items</h1>
+            <p>Live data synced directly from Google Sheets.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <button class="refresh-btn" onclick="fetchData()"><span>↻</span> Refresh</button>
+            <button class="refresh-btn" style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);" onclick="localStorage.removeItem('dispatchedCache');fetchData();">🗑 Clear Cache</button>
+        </div>
+    </div>
 
     <div class="nav-links">
+        <a href="qr.html">📄 Generate Labels</a>
         <a href="scanner.html">🔍 Open QR Scanner</a>
-        <a href="dispatched.html">📦 View Dispatched Orders</a>
     </div>
 
-    <div class="controls">
-        <button onclick="addAddressBox()">Add Box</button>
+    <div class="glass-card">
+        <div id="setup-warning" class="setup-warning" style="display: none;">
+            <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to fetch data.
+        </div>
 
-        <select id="fontFamily" onchange="adjustFontFamily()">
-            <!-- Default -->
-            <option value="Poppins" selected>Poppins ⭐</option>
-            <!-- Sans-serif -->
-            <option value="Roboto">Roboto</option>
-            <option value="Open Sans">Open Sans</option>
-            <option value="Lato">Lato</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Raleway">Raleway</option>
-            <option value="Nunito">Nunito</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Inter">Inter</option>
-            <option value="DM Sans">DM Sans</option>
-            <option value="Work Sans">Work Sans</option>
-            <option value="Barlow">Barlow</option>
-            <option value="Fira Sans">Fira Sans</option>
-            <option value="Exo 2">Exo 2</option>
-            <option value="Cabin">Cabin</option>
-            <option value="Karla">Karla</option>
-            <option value="Rubik">Rubik</option>
-            <option value="Jost">Jost</option>
-            <option value="Outfit">Outfit</option>
-            <option value="Manrope">Manrope</option>
-            <option value="Mulish">Mulish</option>
-            <option value="Quicksand">Quicksand</option>
-            <option value="Josefin Sans">Josefin Sans</option>
-            <option value="Ubuntu">Ubuntu</option>
-            <option value="PT Sans">PT Sans</option>
-            <option value="Source Sans 3">Source Sans 3</option>
-            <option value="Noto Sans">Noto Sans</option>
-            <!-- Serif -->
-            <option value="Merriweather">Merriweather</option>
-            <option value="Playfair Display">Playfair Display</option>
-            <!-- Display / Decorative -->
-            <option value="Pacifico">Pacifico</option>
-            <option value="Lobster">Lobster</option>
-            <option value="Comfortaa">Comfortaa</option>
-            <option value="Righteous">Righteous</option>
-            <option value="Caveat">Caveat</option>
-            <option value="Dancing Script">Dancing Script</option>
-            <!-- System -->
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Segoe UI">Segoe UI</option>
-        </select>
+        <div class="search-container" id="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Search customer by name or phone..." onkeyup="filterTable()">
+        </div>
 
-        <select id="pageSize">
-            <option value="A4">A4</option>
-            <option value="A5">A5</option>
-            <option value="A6" selected>A6</option>
-        </select>
+        <div id="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Fetching data from Google Sheets...</p>
+        </div>
 
-        <button onclick="alignText('left')">Align Left</button>
-        <button onclick="alignText('right')">Align Right</button>
+        <div id="error" class="error-state" style="display: none;">
+            <p id="error-msg">Failed to load data. Please check your URL and try again.</p>
+        </div>
 
-        <button onclick="adjustFontSize(1)">A+</button>
-        <button onclick="adjustFontSize(-1)">A–</button>
+        <div id="empty" class="empty-state" style="display: none;">
+            <p>No dispatched items found. Try scanning a QR code first!</p>
+        </div>
 
-        <button onclick="applyBold()">Bold</button>
-        <button onclick="generatePDF()">Download PDF</button>
-        <button onclick="printAddresses()">Print</button>
+        <table id="data-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Rows will be injected here -->
+            </tbody>
+        </table>
     </div>
 
-    <div id="addressContainer" class="textarea-container"></div>
+
 
     <script>
-        function addAddressBox() {
-            const container = document.getElementById('addressContainer');
-            const box = document.createElement('div');
-            box.className = 'textarea-box';
-            box.innerHTML = `
-      <button class="kdo-label" onclick="toggleKdo(this)">KDO</button>
-      <button class="lock-btn" onclick="toggleLock(this)">Lock</button>
-      <div class="editable" contenteditable="true" style="font-size:16px;"></div>
-    `;
-            container.appendChild(box);
+        // ========================================================================
+        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
+        // ========================================================================
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq6qCSjSJbk3YsTDD8pjfmROmA6ab8_GqDx1sPZIWQaOpM3dN5Vr1dwcWykOE_LklUAA/exec"; 
+        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
+
+        window.onload = function() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
+                document.getElementById('setup-warning').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            fetchData();
         }
 
-        function toggleLock(btn) {
-            const box = btn.parentElement;
-            const editable = box.querySelector('.editable');
-            if (editable.contentEditable === "false") {
-                editable.contentEditable = "true";
-                box.classList.remove('locked');
-                btn.textContent = "Lock";
+        function renderData(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('empty').style.display = 'block';
+                document.getElementById('data-table').style.display = 'none';
+                return;
+            }
+
+            const reversedData = [...data].reverse();
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
+
+            reversedData.forEach(row => {
+                // Skip empty rows
+                if (!row.timestamp && !row.name && !row.phone) return;
+
+                // Skip deleted rows
+                if (deletedOrders.includes(row.timestamp)) return;
+
+                let dispAddress = row.address || row.Address || '';
+                let dispName = row.name || row.Name || '';
+
+                // Fallback: if address is empty, use name field (some old scans stored address there)
+                if (!dispAddress || dispAddress.trim() === '') {
+                    dispAddress = dispName;
+                }
+
+                let displayDate = row.timestamp || 'N/A';
+                if (row.timestamp && row.timestamp !== 'N/A') {
+                    let d = new Date(row.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const mins = String(d.getMinutes()).padStart(2, '0');
+                        displayDate = `${day}/${month}/${year} ${hours}:${mins}`;
+                    } else if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                        displayDate = row.timestamp; // already formatted
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-name', dispName.toLowerCase());
+                tr.setAttribute('data-phone', (row.phone || '').toLowerCase());
+                tr.innerHTML = `
+                    <td class="td-time">${displayDate}</td>
+                    <td><span class="td-status">Dispatched</span></td>
+                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (tbody.children.length === 0) {
+                document.getElementById('empty').style.display = 'block';
+                document.getElementById('data-table').style.display = 'none';
             } else {
-                editable.contentEditable = "false";
-                box.classList.add('locked');
-                btn.textContent = "Unlock";
+                document.getElementById('empty').style.display = 'none';
+                document.getElementById('data-table').style.display = 'table';
             }
         }
 
-        function toggleKdo(labelBtn) {
-            labelBtn.textContent = labelBtn.textContent === 'KDO' ? 'KZO' : 'KDO';
-        }
+        function fetchData() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
 
-        function adjustFontFamily() {
-            const font = document.getElementById('fontFamily').value;
-            document.querySelectorAll('.editable').forEach(div => {
-                div.style.fontFamily = font;
-            });
-        }
-
-        function alignText(direction) {
-            document.querySelectorAll('.editable').forEach(div => {
-                div.style.textAlign = direction;
-            });
-        }
-
-        function applyBold() {
-            document.execCommand('bold');
-        }
-
-        function adjustFontSize(change) {
-            document.querySelectorAll('.editable').forEach(div => {
-                const currentSize = parseInt(window.getComputedStyle(div).fontSize);
-                let newSize = currentSize + change;
-                if (newSize >= 16 && newSize <= 116) {
-                    div.style.fontSize = newSize + 'px';
+            // Show cached data instantly while fetching fresh data
+            const cached = localStorage.getItem('dispatchedCache');
+            if (cached) {
+                try {
+                    renderData(JSON.parse(cached));
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('empty').style.display = 'none';
+                } catch(e) {
+                    localStorage.removeItem('dispatchedCache');
                 }
-            });
-        }
-
-        async function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const pageSize = document.getElementById('pageSize').value.toLowerCase();
-            const doc = new jsPDF({ format: pageSize });
-            const boxes = document.querySelectorAll('.editable');
-
-            let colWidth = 180;
-            let maxHeight = 270;
-            let qrSize = 35;
-            let qrX = 160;
-
-            if (pageSize === 'a5') {
-                colWidth = 100;
-                maxHeight = 190;
-                qrSize = 30;
-                qrX = 110;
-            } else if (pageSize === 'a6') {
-                colWidth = 65;
-                maxHeight = 130;
-                qrSize = 25;
-                qrX = 75;
             }
 
-            const x = 10;
-            let y = 10;
+            document.getElementById('loading').style.display = cached ? 'none' : 'block';
+            document.getElementById('error').style.display = 'none';
 
-            for (let i = 0; i < boxes.length; i++) {
-                const box = boxes[i];
-                const text = box.innerText.trim();
+            // Use JSONP — the only CORS-free way to call Google Apps Script from a plain HTML file
+            const callbackName = 'jsonpCallback_' + Date.now();
+            const timeout = setTimeout(() => {
+                window[callbackName] = null;
+                const tag = document.getElementById('jsonp-script');
+                if (tag) tag.remove();
+                document.getElementById('loading').style.display = 'none';
+                if (!cached) {
+                    document.getElementById('error-msg').textContent =
+                        'Failed to load data. Make sure the Google Apps Script is deployed as a Web App with "Anyone" access.';
+                    document.getElementById('error').style.display = 'block';
+                } else {
+                    console.warn('Network refresh timed out — showing cached data.');
+                }
+            }, 10000);
 
-                if (text) {
-                    // Extract structured data
-                    const phoneMatch = text.match(/\\b\\d{10}\\b/);
-                    const pincodeMatch = text.match(/\\b\\d{6}\\b/);
-                    const linesText = text.split('\\n').filter(l => l.trim() !== '');
-                    const name = linesText.length > 0 ? linesText[0] : '';
+            window[callbackName] = function(data) {
+                clearTimeout(timeout);
+                window[callbackName] = null;
+                const tag = document.getElementById('jsonp-script');
+                if (tag) tag.remove();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                localStorage.setItem('dispatchedCache', JSON.stringify(data));
+                renderData(data);
+            };
 
-                    const qrData = {
-                        name: name,
-                        phone: phoneMatch ? phoneMatch[0] : '',
-                        pincode: pincodeMatch ? pincodeMatch[0] : '',
-                        address: text
-                    };
+            const old = document.getElementById('jsonp-script');
+            if (old) old.remove();
 
-                    // Generate QR Code
-                    let qrDiv = document.createElement('div');
-                    new QRCode(qrDiv, {
-                        text: JSON.stringify(qrData),
-                        width: 512,
-                        height: 512,
-                        correctLevel: QRCode.CorrectLevel.L
-                    });
+            const script = document.createElement('script');
+            script.id = 'jsonp-script';
+            script.src = GOOGLE_WEB_APP_URL + (GOOGLE_WEB_APP_URL.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+            script.onerror = function() {
+                clearTimeout(timeout);
+                window[callbackName] = null;
+                script.remove();
+                document.getElementById('loading').style.display = 'none';
+                if (!cached) {
+                    document.getElementById('error-msg').textContent =
+                        'Failed to load data. Make sure the Google Apps Script is deployed as a Web App with "Anyone" access.';
+                    document.getElementById('error').style.display = 'block';
+                } else {
+                    console.warn('Network error — showing cached data.');
+                }
+            };
+            document.body.appendChild(script);
+        }
 
-                    // Wait slightly for QR code canvas to be rendered
-                    await new Promise(r => setTimeout(r, 50));
+        function filterTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const table = document.getElementById("data-table");
+            const tr = table.getElementsByTagName("tr");
 
-                    let canvas = qrDiv.querySelector('canvas');
-                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : null;
+            for (let i = 1; i < tr.length; i++) {
+                // Search the entire text content of the row
+                const rowText = tr[i].innerText.toLowerCase();
+                if (rowText.includes(input)) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
 
-                    const lines = doc.splitTextToSize(text, colWidth);
-                    let textHeight = lines.length * 6; // approximate text block height
-                    let blockHeight = Math.max(textHeight, qrSize) + 15;
+        function deleteOrder(timestamp) {
+            if (confirm("Are you sure you want to delete this order?")) {
+                // Send delete request to Google Sheets
+                const formData = new URLSearchParams();
+                formData.append("action", "delete");
+                formData.append("timestamp", timestamp);
 
-                    if (y + blockHeight > maxHeight && y !== 10) {
-                        doc.addPage();
-                        y = 10;
+                fetch(GOOGLE_WEB_APP_URL, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        console.log("Successfully deleted from sheet.");
+                        // Hide on frontend only after success
+                        let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
+                        if (!deletedOrders.includes(timestamp)) {
+                            deletedOrders.push(timestamp);
+                            localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
+                        }
+                        fetchData(); // Refresh table to remove the deleted row
+                    } else {
+                        console.error("Failed to delete from sheet: " + (data.message || "Unknown error"));
+                        alert("Failed to delete from Google Sheets. Error: " + data.message);
                     }
-
-                    doc.text(lines, x, y + 5);
-                    if (qrDataUrl) {
-                        doc.addImage(qrDataUrl, 'PNG', qrX, y, qrSize, qrSize);
-                    }
-
-                    y += blockHeight;
-                }
+                })
+                .catch(error => {
+                    console.error("Error deleting from sheet:", error);
+                    alert("Network error. Could not delete.");
+                });
             }
-
-            doc.save('custom.pdf');
         }
-
-
-        function printAddresses() {
-            const boxes = document.querySelectorAll('.textarea-box');
-            const fontFamily = document.getElementById('fontFamily').value;
-            const pageSize = document.getElementById('pageSize').value;
-
-            // Generate all page data including QR codes first
-            const pageData = [];
-            boxes.forEach((box) => {
-                const editable = box.querySelector('.editable');
-                const labelBtn = box.querySelector('.kdo-label');
-
-                const label = labelBtn ? labelBtn.textContent : '';
-                const content = editable.innerHTML.trim();
-                const plainText = editable.innerText.trim();
-                const size = window.getComputedStyle(editable).fontSize;
-                const align = window.getComputedStyle(editable).textAlign;
-
-                if (content) {
-                    const phoneMatch = plainText.match(/\b\d{10}\b/);
-                    const pincodeMatch = plainText.match(/\b\d{6}\b/);
-                    const linesText = plainText.split('\n').filter(l => l.trim() !== '');
-                    const name = linesText.length > 0 ? linesText[0] : '';
-
-                    const qrData = {
-                        name: name,
-                        phone: phoneMatch ? phoneMatch[0] : '',
-                        pincode: pincodeMatch ? pincodeMatch[0] : '',
-                        address: plainText
-                    };
-
-                    let qrDiv = document.createElement('div');
-                    new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
-                    let canvas = qrDiv.querySelector('canvas');
-                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
-
-                    pageData.push({ label, content, size, align, qrDataUrl });
-                }
-            });
-
-            const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`
-      <html>
-      <head>
-        <title>Print ${pageSize}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: ${pageSize} portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: ${fontFamily};
-            margin: 0;
-            padding: 0;
-          }
-          .page {
-            width: 100%;
-            height: 100%;
-            page-break-after: always;
-            box-sizing: border-box;
-            padding: 20px;
-            position: relative;
-          }
-          .label {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 16px;
-          }
-          .body-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-top: 30px;
-          }
-          .content {
-            flex: 1;
-            font-size: 16px;
-            word-wrap: break-word;
-            padding: 10px;
-            border-radius: 0;
-            background: transparent;
-          }
-          .qr-img {
-            margin-left: 15px;
-            flex-shrink: 0;
-          }
-          .note {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-    `);
-
-            pageData.forEach(({ label, content, size, align, qrDataUrl }) => {
-                win.document.write(`
-            <div class="page">
-              <div class="label">${label}</div>
-              <div class="body-row">
-                <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
-                ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
-              </div>
-              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-            </div>
-          `);
-            });
-
-            win.document.write(`</body></html>`);
-            win.document.close();
-            win.print();
-        }
-
-        // Start with one box
-        addAddressBox();
     </script>
 </body>
-
 </html>
