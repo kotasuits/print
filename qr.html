@@ -188,23 +188,23 @@
 <body>
 
   <header>
-    <h1>📦 Custom PDF & Print Maker</h1>
+    <h1>&#128230; Custom PDF &amp; Print Maker</h1>
     <p>Create, format and print shipping addresses with auto QR codes</p>
   </header>
 
   <nav>
-    <a href="scanner.html">🔍 QR Scanner</a>
-    <a href="dispatched.html">📦 Dispatched Orders</a>
+    <a href="scanner.html">&#128269; QR Scanner</a>
+    <a href="dispatched.html">&#128230; Dispatched Orders</a>
   </nav>
 
   <div class="toolbar">
 
-    <button class="btn btn-add" onclick="addBox()">➕ Add Box</button>
+    <button class="btn btn-add" onclick="addBox()">&#10133; Add Box</button>
 
     <div class="divider"></div>
 
     <select id="fontFamily" onchange="applyFont()">
-      <option value="Poppins" selected>Poppins ⭐</option>
+      <option value="Poppins" selected>Poppins</option>
       <option value="Roboto">Roboto</option>
       <option value="Open Sans">Open Sans</option>
       <option value="Lato">Lato</option>
@@ -252,65 +252,66 @@
 
     <div class="divider"></div>
 
-    <button class="btn btn-default" onclick="alignAll('left')">&#8592; Left</button>
-    <button class="btn btn-default" onclick="alignAll('right')">Right &#8594;</button>
+    <button class="btn btn-default" onclick="alignAll('left')">Left</button>
+    <button class="btn btn-default" onclick="alignAll('right')">Right</button>
     <button class="btn btn-default" onclick="changeFontSize(1)">A+</button>
     <button class="btn btn-default" onclick="changeFontSize(-1)">A-</button>
     <button class="btn btn-default" onclick="document.execCommand('bold')"><b>Bold</b></button>
 
     <div class="divider"></div>
 
-    <button class="btn btn-pdf" onclick="generatePDF()">&#11015; PDF</button>
+    <button class="btn btn-pdf"   onclick="generatePDF()">Download PDF</button>
     <button class="btn btn-print" onclick="printAddresses()">&#128424; Print</button>
 
   </div>
 
   <div id="grid" class="grid">
     <div class="empty-state" id="emptyState">
-      <div class="icon">📝</div>
-      <p>Click <strong>➕ Add Box</strong> to create your first address card</p>
+      <div class="icon">&#128221;</div>
+      <p>Click <strong>Add Box</strong> to create your first address card</p>
     </div>
   </div>
 
   <script>
     function addBox() {
-      document.getElementById('emptyState') && document.getElementById('emptyState').remove();
-      const grid = document.getElementById('grid');
-      const box  = document.createElement('div');
+      var es = document.getElementById('emptyState');
+      if (es) es.remove();
+      var grid = document.getElementById('grid');
+      var box  = document.createElement('div');
       box.className = 'addr-box';
-      box.innerHTML = `
-        <div class="box-topbar">
-          <button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>
-          <div class="box-actions">
-            <button class="lock-btn" onclick="toggleLock(this)">Lock</button>
-            <button class="del-btn"  onclick="removeBox(this)">X</button>
-          </div>
-        </div>
-        <div class="editable" contenteditable="true" style="font-size:16px; font-family:'Poppins',sans-serif;"></div>
-      `;
+      box.innerHTML =
+        '<div class="box-topbar">' +
+          '<button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>' +
+          '<div class="box-actions">' +
+            '<button class="lock-btn" onclick="toggleLock(this)">Lock</button>' +
+            '<button class="del-btn"  onclick="removeBox(this)">X</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="editable" contenteditable="true" style="font-size:16px;font-family:Poppins,sans-serif;"></div>';
       grid.appendChild(box);
       box.querySelector('.editable').focus();
     }
 
     function removeBox(btn) {
-      const box = btn.closest('.addr-box');
+      var box = btn.closest('.addr-box');
       box.style.transition = 'all 0.18s';
       box.style.opacity = '0';
       box.style.transform = 'scale(0.93)';
-      setTimeout(() => {
+      setTimeout(function() {
         box.remove();
         if (!document.querySelector('.addr-box')) {
           document.getElementById('grid').innerHTML =
-            '<div class="empty-state" id="emptyState"><div class="icon">📝</div><p>Click <strong>➕ Add Box</strong> to create your first address card</p></div>';
+            '<div class="empty-state" id="emptyState"><div class="icon">&#128221;</div>' +
+            '<p>Click <strong>Add Box</strong> to create your first address card</p></div>';
         }
       }, 180);
     }
 
     function toggleLock(btn) {
-      const ed = btn.closest('.addr-box').querySelector('.editable');
-      const locked = ed.contentEditable === 'false';
+      var ed = btn.closest('.addr-box').querySelector('.editable');
+      var locked = ed.contentEditable === 'false';
       ed.contentEditable = locked ? 'true' : 'false';
-      btn.textContent   = locked ? 'Lock' : 'Unlock';
+      btn.textContent = locked ? 'Lock' : 'Unlock';
     }
 
     function toggleKdo(btn) {
@@ -318,40 +319,44 @@
     }
 
     function applyFont() {
-      const font = document.getElementById('fontFamily').value;
-      document.querySelectorAll('.editable').forEach(el => el.style.fontFamily = font);
+      var font = document.getElementById('fontFamily').value;
+      document.querySelectorAll('.editable').forEach(function(el) {
+        el.style.fontFamily = font;
+      });
     }
 
     function alignAll(dir) {
-      document.querySelectorAll('.editable').forEach(el => el.style.textAlign = dir);
+      document.querySelectorAll('.editable').forEach(function(el) {
+        el.style.textAlign = dir;
+      });
     }
 
     function changeFontSize(delta) {
-      document.querySelectorAll('.editable').forEach(el => {
-        const cur  = parseInt(window.getComputedStyle(el).fontSize);
-        const next = cur + delta;
+      document.querySelectorAll('.editable').forEach(function(el) {
+        var cur  = parseInt(window.getComputedStyle(el).fontSize);
+        var next = cur + delta;
         if (next >= 10 && next <= 60) el.style.fontSize = next + 'px';
       });
     }
 
     /* ============================================================
-       PRINT  —  exact proven pattern from old working app
-       1. open window  2. write header  3. loop boxes → write pages
-       4. close  5. print
+       PRINT — proven pattern from old working app
+       open window → write header → loop write pages → close → print
+       QR code wrapped in try/catch so long addresses never crash it
     ============================================================ */
     function printAddresses() {
-      const boxes      = document.querySelectorAll('.addr-box');
-      const fontFamily = document.getElementById('fontFamily').value;
-      const pageSize   = document.getElementById('pageSize').value;
+      var boxes      = document.querySelectorAll('.addr-box');
+      var fontFamily = document.getElementById('fontFamily').value;
+      var pageSize   = document.getElementById('pageSize').value;
 
-      // Step 1: open popup (same as old working code)
-      const win = window.open('', '', 'width=800,height=900');
+      // Open popup first (same as old working code)
+      var win = window.open('', '', 'width=800,height=900');
       if (!win) {
-        alert('Popup blocked!\nAllow popups for this site in the address bar, then try again.');
+        alert('Popup blocked! Allow popups for this site in the address bar, then try again.');
         return;
       }
 
-      // Step 2: write header straight away
+      // Write header immediately
       win.document.write(
         '<html><head>' +
         '<title>Print ' + pageSize + '</title>' +
@@ -368,7 +373,7 @@
         '</style></head><body>'
       );
 
-      // Step 3: loop boxes and write each page directly
+      // Write each page directly in the loop
       boxes.forEach(function(box) {
         var editable  = box.querySelector('.editable');
         var kdoBtn    = box.querySelector('.kdo-btn');
@@ -380,31 +385,35 @@
 
         if (!content) return;
 
-        // Extract fields
+        // Extract key fields
         var phone   = (plainText.match(/\b\d{10}\b/) || [''])[0];
         var pincode = (plainText.match(/\b\d{6}\b/)  || [''])[0];
         var name    = '';
-        var lines   = plainText.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          if (lines[i].trim()) { name = lines[i].trim(); break; }
+        var textLines = plainText.split('\n');
+        for (var i = 0; i < textLines.length; i++) {
+          if (textLines[i].trim()) { name = textLines[i].trim(); break; }
         }
 
-        // QR code — only encode short essential fields so it never fails on long addresses
+        // Generate QR code — short payload only (name+phone+pincode)
+        // Wrapped in try/catch so a long address NEVER crashes the loop
         var qrDataUrl = '';
         try {
-          var qrPayload = name + '\n' + phone + '\n' + pincode;
-          var qrDiv = document.createElement('div');
-          new QRCode(qrDiv, {
-            text: qrPayload,
-            width: 256, height: 256,
-            correctLevel: QRCode.CorrectLevel.L
+          var qrText = (name + ' ' + phone + ' ' + pincode).trim();
+          if (qrText.length < 3) qrText = plainText.substring(0, 100);
+          var qrContainer = document.createElement('div');
+          new QRCode(qrContainer, {
+            text: qrText,
+            width: 256,
+            height: 256,
+            correctLevel: QRCode.CorrectLevel.M
           });
-          var canvas = qrDiv.querySelector('canvas');
-          qrDataUrl  = canvas ? canvas.toDataURL('image/png') : '';
-        } catch(e) {
-          qrDataUrl = ''; // skip QR if it still fails, but never crash the loop
+          var cv = qrContainer.querySelector('canvas');
+          if (cv) qrDataUrl = cv.toDataURL('image/png');
+        } catch (e) {
+          qrDataUrl = ''; // no QR is fine — address still prints
         }
 
+        // Write this page into the popup
         win.document.write(
           '<div class="page">' +
           '<div class="label">' + label + '</div>' +
@@ -412,40 +421,12 @@
           '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
           (qrDataUrl ? '<div class="qr-img"><img src="' + qrDataUrl + '" width="100" height="100"/></div>' : '') +
           '</div>' +
-          '<div class="note"><em>&#9888; Important : Unboxing video required for any claim.</em></div>' +
+          '<div class="note"><em>&#9888;&#65039; Important : Unboxing video required for any claim.</em></div>' +
           '</div>'
         );
       });
 
-        var pincode = (plainText.match(/\b\d{6}\b/)  || [''])[0];
-        var name    = '';
-        var lines   = plainText.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          if (lines[i].trim()) { name = lines[i].trim(); break; }
-        }
-
-        var qrDiv = document.createElement('div');
-        new QRCode(qrDiv, {
-          text: JSON.stringify({ name: name, phone: phone, pincode: pincode, address: plainText }),
-          width: 256, height: 256,
-          correctLevel: QRCode.CorrectLevel.L
-        });
-        var canvas    = qrDiv.querySelector('canvas');
-        var qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
-
-        win.document.write(
-          '<div class="page">' +
-          '<div class="label">' + label + '</div>' +
-          '<div class="body-row">' +
-          '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
-          (qrDataUrl ? '<div class="qr-img"><img src="' + qrDataUrl + '" width="100" height="100"/></div>' : '') +
-          '</div>' +
-          '<div class="note"><em>&#9888; Important : Unboxing video required for any claim.</em></div>' +
-          '</div>'
-        );
-      });
-
-      // Step 4 & 5: close and print — exactly like old working code
+      // Close and print — exactly like old working code
       win.document.write('</body></html>');
       win.document.close();
       win.print();
@@ -455,36 +436,39 @@
        PDF DOWNLOAD
     ============================================================ */
     async function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const pageSize  = document.getElementById('pageSize').value.toLowerCase();
-      const doc       = new jsPDF({ format: pageSize });
+      var jsPDFLib = window.jspdf;
+      var doc = new jsPDFLib.jsPDF({ format: document.getElementById('pageSize').value.toLowerCase() });
+      var pageSize = document.getElementById('pageSize').value.toLowerCase();
 
-      let colWidth = 180, maxH = 270, qrSz = 35, qrX = 160;
+      var colWidth = 180, maxH = 270, qrSz = 35, qrX = 160;
       if (pageSize === 'a5') { colWidth = 100; maxH = 190; qrSz = 30; qrX = 110; }
       if (pageSize === 'a6') { colWidth = 65;  maxH = 130; qrSz = 25; qrX = 75;  }
 
-      const boxes = document.querySelectorAll('.editable');
-      let y = 10;
+      var boxes = document.querySelectorAll('.editable');
+      var y = 10;
 
-      for (const box of boxes) {
-        const text = box.innerText.trim();
+      for (var b = 0; b < boxes.length; b++) {
+        var text = boxes[b].innerText.trim();
         if (!text) continue;
 
-        const phone   = (text.match(/\b\d{10}\b/) || [''])[0];
-        const pincode = (text.match(/\b\d{6}\b/)  || [''])[0];
-        const name    = text.split('\n').find(l => l.trim()) || '';
+        var phone   = (text.match(/\b\d{10}\b/) || [''])[0];
+        var pincode = (text.match(/\b\d{6}\b/)  || [''])[0];
+        var name    = text.split('\n').find(function(l){ return l.trim(); }) || '';
+        var qrUrl   = null;
 
-        const qrDiv = document.createElement('div');
-        new QRCode(qrDiv, {
-          text: JSON.stringify({ name, phone, pincode, address: text }),
-          width: 512, height: 512, correctLevel: QRCode.CorrectLevel.L
-        });
-        await new Promise(r => setTimeout(r, 60));
-        const canvas = qrDiv.querySelector('canvas');
-        const qrUrl  = canvas ? canvas.toDataURL('image/png') : null;
+        try {
+          var qDiv = document.createElement('div');
+          new QRCode(qDiv, {
+            text: name + ' ' + phone + ' ' + pincode,
+            width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M
+          });
+          await new Promise(function(r){ setTimeout(r, 60); });
+          var cv = qDiv.querySelector('canvas');
+          if (cv) qrUrl = cv.toDataURL('image/png');
+        } catch(e) { qrUrl = null; }
 
-        const lines  = doc.splitTextToSize(text, colWidth);
-        const blockH = Math.max(lines.length * 6, qrSz) + 15;
+        var lines  = doc.splitTextToSize(text, colWidth);
+        var blockH = Math.max(lines.length * 6, qrSz) + 15;
 
         if (y + blockH > maxH && y !== 10) { doc.addPage(); y = 10; }
         doc.text(lines, 10, y + 5);
