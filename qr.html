@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Made By Arshad Kota</title>
+    <title>Custom PDF Maker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link
@@ -407,67 +407,118 @@
             const fontFamily = document.getElementById('fontFamily').value;
             const pageSize = document.getElementById('pageSize').value;
 
-            const validBoxes = Array.from(boxes).filter(box => {
-                const text = box.querySelector('.editable').innerText.trim();
-                return text !== '';
-            });
-
-            if (validBoxes.length === 0) {
-                alert('Please add at least one address before printing.');
-                return;
-            }
-
-            // Build all page HTML as a string
-            let pagesHtml = '';
-            validBoxes.forEach((box, index) => {
+            // Generate all page data including QR codes first
+            const pageData = [];
+            boxes.forEach((box) => {
                 const editable = box.querySelector('.editable');
                 const labelBtn = box.querySelector('.kdo-label');
+
                 const label = labelBtn ? labelBtn.textContent : '';
+                const content = editable.innerHTML.trim();
                 const plainText = editable.innerText.trim();
-                const htmlContent = editable.innerHTML.trim();
                 const size = window.getComputedStyle(editable).fontSize;
                 const align = window.getComputedStyle(editable).textAlign;
 
-                const phoneMatch = plainText.match(/\b\d{10}\b/);
-                const pincodeMatch = plainText.match(/\b\d{6}\b/);
-                const linesText = plainText.split('\n').filter(l => l.trim() !== '');
-                const name = linesText.length > 0 ? linesText[0] : '';
+                if (content) {
+                    const phoneMatch = plainText.match(/\b\d{10}\b/);
+                    const pincodeMatch = plainText.match(/\b\d{6}\b/);
+                    const linesText = plainText.split('\n').filter(l => l.trim() !== '');
+                    const name = linesText.length > 0 ? linesText[0] : '';
 
-                const qrData = {
-                    name: name,
-                    phone: phoneMatch ? phoneMatch[0] : '',
-                    pincode: pincodeMatch ? pincodeMatch[0] : '',
-                    address: plainText
-                };
+                    const qrData = {
+                        name: name,
+                        phone: phoneMatch ? phoneMatch[0] : '',
+                        pincode: pincodeMatch ? pincodeMatch[0] : '',
+                        address: plainText
+                    };
 
-                let qrDiv = document.createElement('div');
-                new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 512, height: 512, correctLevel: QRCode.CorrectLevel.L });
-                let canvas = qrDiv.querySelector('canvas');
-                let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+                    let qrDiv = document.createElement('div');
+                    new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
+                    let canvas = qrDiv.querySelector('canvas');
+                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
 
-                const isLast = (index === validBoxes.length - 1);
-                pagesHtml += `
-                <div style="width:100%;min-height:96vh;box-sizing:border-box;padding:20px;position:relative;overflow:hidden;${isLast ? 'page-break-after:auto;' : 'page-break-after:always;'}">
-                  <div style="position:absolute;top:5px;right:10px;font-family:'Dancing Script',cursive;font-size:16px;">${label}</div>
-                  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-top:30px;">
-                    <div style="flex:1;font-size:${size};text-align:${align};word-wrap:break-word;padding:10px;">${htmlContent}</div>
-                    ${qrDataUrl ? `<div style="margin-left:15px;"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
-                  </div>
-                  <div style="position:absolute;bottom:20px;left:0;width:100%;text-align:center;font-size:16px;font-weight:bold;"><em>⚠️Important : Unboxing video required for any claim.</em></div>
-                </div>`;
+                    pageData.push({ label, content, size, align, qrDataUrl });
+                }
             });
 
-            const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html><head>
-              <title>Print ${pageSize}</title>
-              <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-              <style>
-                @page { size: ${pageSize} portrait; margin: 10mm; }
-                body { font-family: ${fontFamily}; margin: 0; padding: 0; }
-              </style>
-            </head><body>${pagesHtml}</body></html>`);
+            const win = window.open('', '', 'width=800,height=900');
+            win.document.write(`
+      <html>
+      <head>
+        <title>Print ${pageSize}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: ${pageSize} portrait;
+            margin: 10mm;
+          }
+          body {
+            font-family: ${fontFamily};
+            margin: 0;
+            padding: 0;
+          }
+          .page {
+            width: 100%;
+            height: 100%;
+            page-break-after: always;
+            box-sizing: border-box;
+            padding: 20px;
+            position: relative;
+          }
+          .label {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 16px;
+          }
+          .body-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-top: 30px;
+          }
+          .content {
+            flex: 1;
+            font-size: 16px;
+            word-wrap: break-word;
+            padding: 10px;
+            border-radius: 0;
+            background: transparent;
+          }
+          .qr-img {
+            margin-left: 15px;
+            flex-shrink: 0;
+          }
+          .note {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+    `);
+
+            pageData.forEach(({ label, content, size, align, qrDataUrl }) => {
+                win.document.write(`
+            <div class="page">
+              <div class="label">${label}</div>
+              <div class="body-row">
+                <div class="content" style="font-size:${size}; text-align:${align}">${content}</div>
+                ${qrDataUrl ? `<div class="qr-img"><img src="${qrDataUrl}" width="100" height="100"/></div>` : ''}
+              </div>
+              <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
+            </div>
+          `);
+            });
+
+            win.document.write(`</body></html>`);
             win.document.close();
-            win.focus();
             win.print();
         }
 
