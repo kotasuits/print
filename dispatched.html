@@ -375,7 +375,7 @@
         function fetchData() {
             if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
 
-            // Show cached data instantly while fetching fresh data
+            // Show cached data instantly while fresh data loads in background
             const cached = localStorage.getItem('dispatchedCache');
             if (cached) {
                 try {
@@ -390,53 +390,41 @@
             document.getElementById('loading').style.display = cached ? 'none' : 'block';
             document.getElementById('error').style.display = 'none';
 
-            // Use JSONP — the only CORS-free way to call Google Apps Script from a plain HTML file
-            const callbackName = 'jsonpCallback_' + Date.now();
-            const timeout = setTimeout(() => {
-                window[callbackName] = null;
-                const tag = document.getElementById('jsonp-script');
-                if (tag) tag.remove();
-                document.getElementById('loading').style.display = 'none';
-                if (!cached) {
-                    document.getElementById('error-msg').textContent =
-                        'Failed to load data. Make sure the Google Apps Script is deployed as a Web App with "Anyone" access.';
-                    document.getElementById('error').style.display = 'block';
-                } else {
-                    console.warn('Network refresh timed out — showing cached data.');
+            // Google Apps Script supports CORS for GET — fetch works when deployed with "Anyone" access
+            fetch(GOOGLE_WEB_APP_URL, {
+                method: 'GET',
+                redirect: 'follow'
+            })
+            .then(function(response) {
+                return response.text(); // use text() first to avoid JSON parse crash
+            })
+            .then(function(text) {
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    throw new Error('Invalid response from server. Check your Google Apps Script.');
                 }
-            }, 10000);
-
-            window[callbackName] = function(data) {
-                clearTimeout(timeout);
-                window[callbackName] = null;
-                const tag = document.getElementById('jsonp-script');
-                if (tag) tag.remove();
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'none';
                 localStorage.setItem('dispatchedCache', JSON.stringify(data));
                 renderData(data);
-            };
-
-            const old = document.getElementById('jsonp-script');
-            if (old) old.remove();
-
-            const script = document.createElement('script');
-            script.id = 'jsonp-script';
-            script.src = GOOGLE_WEB_APP_URL + (GOOGLE_WEB_APP_URL.includes('?') ? '&' : '?') + 'callback=' + callbackName;
-            script.onerror = function() {
-                clearTimeout(timeout);
-                window[callbackName] = null;
-                script.remove();
+            })
+            .catch(function(error) {
+                console.error('Fetch error:', error);
                 document.getElementById('loading').style.display = 'none';
                 if (!cached) {
-                    document.getElementById('error-msg').textContent =
-                        'Failed to load data. Make sure the Google Apps Script is deployed as a Web App with "Anyone" access.';
+                    document.getElementById('error-msg').innerHTML =
+                        '❌ Failed to load data.<br><small>' + error.message + '</small><br><br>' +
+                        '✅ <strong>Make sure:</strong><br>' +
+                        '1. Google Apps Script is deployed as <strong>Web App</strong><br>' +
+                        '2. Access is set to <strong>"Anyone"</strong><br>' +
+                        '3. You are connected to the internet';
                     document.getElementById('error').style.display = 'block';
                 } else {
-                    console.warn('Network error — showing cached data.');
+                    console.warn('Showing cached data due to network error.');
                 }
-            };
-            document.body.appendChild(script);
+            });
         }
 
         function filterTable() {
