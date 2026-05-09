@@ -519,9 +519,7 @@
                 .print-page {
                     width: 100%; min-height: 96vh;
                     page-break-after: always;
-                    box-sizing: border-box;
-                    padding: 20px;
-                    position: relative;
+                    box-sizing: border-box; padding: 20px; position: relative;
                 }
                 .print-label {
                     position: absolute; top: 5px; right: 10px;
@@ -531,44 +529,17 @@
                     display: flex; justify-content: space-between;
                     align-items: flex-start; padding-top: 30px;
                 }
-                .print-content {
-                    flex: 1; word-wrap: break-word; padding: 10px;
-                    background: transparent;
-                }
+                .print-content { flex: 1; word-wrap: break-word; padding: 10px; background: transparent; }
                 .print-qr { margin-left: 15px; flex-shrink: 0; }
                 .print-note {
                     position: absolute; bottom: 20px; left: 0;
-                    width: 100%; text-align: center;
-                    font-size: 16px; font-weight: bold;
+                    width: 100%; text-align: center; font-size: 16px; font-weight: bold;
                 }`;
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
             if (isMobile) {
                 // ===== MOBILE PRINT: inject into current page =====
-                const printStyles = `
-                    @page { size: ${pageSize} portrait; margin: 10mm; }
-                    body { font-family: ${fontFamily}; margin: 0; padding: 0; }
-                    .print-page {
-                        width: 100%; min-height: 96vh;
-                        page-break-after: always;
-                        box-sizing: border-box; padding: 20px; position: relative;
-                    }
-                    .print-label {
-                        position: absolute; top: 5px; right: 10px;
-                        font-family: 'Dancing Script', cursive; font-size: 16px;
-                    }
-                    .print-body-row {
-                        display: flex; justify-content: space-between;
-                        align-items: flex-start; padding-top: 30px;
-                    }
-                    .print-content { flex: 1; word-wrap: break-word; padding: 10px; background: transparent; }
-                    .print-qr { margin-left: 15px; flex-shrink: 0; }
-                    .print-note {
-                        position: absolute; bottom: 20px; left: 0;
-                        width: 100%; text-align: center; font-size: 16px; font-weight: bold;
-                    }`;
-
                 let styleTag = document.getElementById('mobile-print-style');
                 if (!styleTag) {
                     styleTag = document.createElement('style');
