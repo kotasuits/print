@@ -463,42 +463,56 @@
             const fontFamily = document.getElementById('fontFamily').value;
             const pageSize = document.getElementById('pageSize').value;
 
-            // Generate all page data including QR codes first
-            const pageData = [];
-            boxes.forEach((box) => {
-                const editable = box.querySelector('.editable');
-                const labelBtn = box.querySelector('.kdo-label');
+            // Open the popup window FIRST (must be synchronous / direct user gesture)
+            const win = window.open('', '_blank', 'width=800,height=900');
+            if (!win) {
+                alert('Popup was blocked! Please allow popups for this site and try again.');
+                return;
+            }
 
-                const label = labelBtn ? labelBtn.textContent : '';
-                const content = editable.innerHTML.trim();
-                const plainText = editable.innerText.trim();
-                const size = window.getComputedStyle(editable).fontSize;
-                const align = window.getComputedStyle(editable).textAlign;
+            // Show a loading message while QR codes are generated
+            win.document.write('<html><body style="font-family:sans-serif;padding:30px;text-align:center"><p>⏳ Preparing print layout…</p></body></html>');
 
-                if (content) {
-                    const phoneMatch = plainText.match(/\b\d{10}\b/);
-                    const pincodeMatch = plainText.match(/\b\d{6}\b/);
-                    const linesText = plainText.split('\n').filter(l => l.trim() !== '');
-                    const name = linesText.length > 0 ? linesText[0] : '';
+            // Small delay to allow QR canvas to render
+            setTimeout(() => {
+                // Generate all page data including QR codes
+                const pageData = [];
+                boxes.forEach((box) => {
+                    const editable = box.querySelector('.editable');
+                    const labelBtn = box.querySelector('.kdo-label');
 
-                    const qrData = {
-                        name: name,
-                        phone: phoneMatch ? phoneMatch[0] : '',
-                        pincode: pincodeMatch ? pincodeMatch[0] : '',
-                        address: plainText
-                    };
+                    const label = labelBtn ? labelBtn.textContent : '';
+                    const content = editable.innerHTML.trim();
+                    const plainText = editable.innerText.trim();
+                    const size = window.getComputedStyle(editable).fontSize;
+                    const align = window.getComputedStyle(editable).textAlign;
 
-                    let qrDiv = document.createElement('div');
-                    new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
-                    let canvas = qrDiv.querySelector('canvas');
-                    let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+                    if (content) {
+                        const phoneMatch = plainText.match(/\b\d{10}\b/);
+                        const pincodeMatch = plainText.match(/\b\d{6}\b/);
+                        const linesText = plainText.split('\n').filter(l => l.trim() !== '');
+                        const name = linesText.length > 0 ? linesText[0] : '';
 
-                    pageData.push({ label, content, size, align, qrDataUrl });
-                }
-            });
+                        const qrData = {
+                            name: name,
+                            phone: phoneMatch ? phoneMatch[0] : '',
+                            pincode: pincodeMatch ? pincodeMatch[0] : '',
+                            address: plainText
+                        };
 
-            const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`
+                        let qrDiv = document.createElement('div');
+                        new QRCode(qrDiv, { text: JSON.stringify(qrData), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.L });
+
+                        // Give canvas a tick to finish drawing
+                        let canvas = qrDiv.querySelector('canvas');
+                        let qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+
+                        pageData.push({ label, content, size, align, qrDataUrl });
+                    }
+                });
+
+                win.document.open();
+                win.document.write(`
       <html>
       <head>
         <title>Print ${pageSize}</title>
@@ -571,11 +585,13 @@
               <div class="note"><em>⚠️Important : Unboxing video required for any claim.</em></div>
             </div>
           `);
-            });
+                });
 
-            win.document.write(`</body></html>`);
-            win.document.close();
-            win.print();
+                win.document.write(`</body></html>`);
+                win.document.close();
+                // Short delay so browser finishes rendering before print dialog
+                setTimeout(() => win.print(), 100);
+            }, 50);
         }
 
         // Start with one box
